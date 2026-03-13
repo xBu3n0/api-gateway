@@ -20,6 +20,7 @@
   "imports": {
     "#listeners/*": "./app/adapters/listeners/*.js",
     "#events/*": "./app/domain/events/*.js",
+    "#enums/*": "./app/domain/enums/*.js",
     "#services/*": "./app/application/services/*.js",
     "#repositories/*": "./app/application/repositories/*.js",
     "#models/*": "./app/infrastructure/models/*.js",

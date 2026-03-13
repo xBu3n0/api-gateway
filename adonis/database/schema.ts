@@ -47,7 +47,7 @@ export class ClientSchema extends BaseModel {
   static $columns = ['createdAt', 'email', 'id', 'name', 'updatedAt'] as const
   $columns = ClientSchema.$columns
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column()
   declare email: string
   @column({ isPrimary: true })
@@ -62,7 +62,7 @@ export class GatewaySchema extends BaseModel {
   static $columns = ['createdAt', 'id', 'isActive', 'name', 'priority', 'updatedAt'] as const
   $columns = GatewaySchema.$columns
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -81,7 +81,7 @@ export class ProductSchema extends BaseModel {
   @column()
   declare amount: number
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -91,8 +91,17 @@ export class ProductSchema extends BaseModel {
 }
 
 export class TransactionProductSchema extends BaseModel {
-  static $columns = ['id', 'productId', 'quantity', 'transactionId', 'unitPrice'] as const
+  static $columns = [
+    'createdAt',
+    'id',
+    'productId',
+    'quantity',
+    'transactionId',
+    'updatedAt',
+  ] as const
   $columns = TransactionProductSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -101,8 +110,8 @@ export class TransactionProductSchema extends BaseModel {
   declare quantity: number
   @column()
   declare transactionId: number
-  @column()
-  declare unitPrice: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class TransactionSchema extends BaseModel {
@@ -119,15 +128,15 @@ export class TransactionSchema extends BaseModel {
   ] as const
   $columns = TransactionSchema.$columns
   @column()
-  declare amount: bigint | number
+  declare amount: number
   @column()
   declare cardLastNumbers: string
   @column()
   declare clientId: number
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column()
-  declare externalId: string | null
+  declare externalId: string
   @column()
   declare gatewayId: number
   @column({ isPrimary: true })
@@ -139,22 +148,12 @@ export class TransactionSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'email',
-    'fullName',
-    'id',
-    'password',
-    'role',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'email', 'id', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column()
   declare email: string
-  @column()
-  declare fullName: string | null
   @column({ isPrimary: true })
   declare id: number
   @column({ serializeAs: null })

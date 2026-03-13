@@ -1,4 +1,5 @@
 import vine from '@vinejs/vine'
+import { Role } from '#enums/auth/role.enum'
 
 /**
  * Shared rules for email and password.
@@ -10,10 +11,10 @@ const password = () => vine.string().minLength(8).maxLength(32)
  * Validator to use when performing self-signup
  */
 export const signupValidator = vine.create({
-  fullName: vine.string().nullable(),
   email: email().unique({ table: 'users', column: 'email' }),
   password: password(),
   passwordConfirmation: password().sameAs('password'),
+  role: vine.enum(Object.values(Role)),
 })
 
 /**
