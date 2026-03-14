@@ -2,10 +2,10 @@ import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import UserService from '#services/auth/user.service'
 import { RoleEnum } from '#enums/auth/role.enum'
-import UserNotFoundException from '#domain/exceptions/auth/user_not_found_exception'
+import UserNotFoundException from '#domain/exceptions/auth/user_not_found.exception'
 import User from '#models/auth/user'
 import { UserFactory } from '#database/factories/user_factory'
-import InvalidCredentialsException from '#domain/exceptions/auth/invalid_credentials_exception'
+import InvalidCredentialsException from '#domain/exceptions/auth/invalid_credentials.exception'
 import hash from '@adonisjs/core/services/hash'
 
 const MISSING_USER_ID = 999999

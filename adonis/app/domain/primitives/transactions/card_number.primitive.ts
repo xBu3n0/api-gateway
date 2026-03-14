@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import SensitivePrimitive from '#domain/primitives/shared/sensitive.primitive'
 
 const CARD_NUMBER_REGEX = /^\d{16}$/

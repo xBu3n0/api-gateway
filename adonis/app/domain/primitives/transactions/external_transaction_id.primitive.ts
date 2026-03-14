@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 
 const EXTERNAL_TRANSACTION_ID_MAX_LENGTH = 255
 

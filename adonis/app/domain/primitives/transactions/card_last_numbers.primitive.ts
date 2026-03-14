@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 
 const CARD_LAST_NUMBERS_REGEX = /^\d{4}$/
 

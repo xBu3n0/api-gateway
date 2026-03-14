@@ -1,8 +1,8 @@
 import { Email } from '#domain/primitives/shared/email.primitive'
-import InvalidCredentialsException from '#domain/exceptions/auth/invalid_credentials_exception'
+import InvalidCredentialsException from '#domain/exceptions/auth/invalid_credentials.exception'
 import { Role } from '#domain/primitives/auth/role.primitive'
 import { Password } from '#domain/primitives/auth/password.primitive'
-import UserNotFoundException from '#domain/exceptions/auth/user_not_found_exception'
+import UserNotFoundException from '#domain/exceptions/auth/user_not_found.exception'
 import UserEntity from '#domain/entities/shared/user.entity'
 import UserRepositoryInterface from '#repositories/auth/user.repository'
 import type {

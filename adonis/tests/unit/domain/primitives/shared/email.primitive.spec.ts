@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { Email } from '#domain/primitives/shared/email.primitive'
 import { MAX_EMAIL_LENGTH } from '#domain/shared/consts'
 

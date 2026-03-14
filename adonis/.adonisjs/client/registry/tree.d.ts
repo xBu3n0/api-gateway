@@ -25,4 +25,36 @@ export interface ApiDefinition {
       destroy: typeof routes['users.users.destroy']
     }
   }
+  purchases: {
+    store: typeof routes['purchases.store']
+  }
+  products: {
+    products: {
+      index: typeof routes['products.products.index']
+      store: typeof routes['products.products.store']
+      show: typeof routes['products.products.show']
+      update: typeof routes['products.products.update']
+      destroy: typeof routes['products.products.destroy']
+    }
+  }
+  gateways: {
+    gateways: {
+      index: typeof routes['gateways.gateways.index']
+      updateStatus: typeof routes['gateways.gateways.update_status']
+      updatePriority: typeof routes['gateways.gateways.update_priority']
+    }
+  }
+  clients: {
+    clients: {
+      index: typeof routes['clients.clients.index']
+      show: typeof routes['clients.clients.show']
+    }
+  }
+  transactions: {
+    transactions: {
+      index: typeof routes['transactions.transactions.index']
+      show: typeof routes['transactions.transactions.show']
+      refund: typeof routes['transactions.transactions.refund']
+    }
+  }
 }

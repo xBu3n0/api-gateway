@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { GatewayName } from '#domain/primitives/transactions/gateway_name.primitive'
 
 const longGatewayName = 'a'.repeat(256)

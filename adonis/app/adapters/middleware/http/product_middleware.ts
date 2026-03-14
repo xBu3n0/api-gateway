@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import type { Authenticators } from '@adonisjs/auth/types'
-import PermissionDeniedException from '#domain/exceptions/shared/permission_denied_exception'
+import PermissionDeniedException from '#domain/exceptions/shared/permission_denied.exception'
 import ProductPolicy from '#policies/product_policy'
 
 export default class ProductMiddleware {

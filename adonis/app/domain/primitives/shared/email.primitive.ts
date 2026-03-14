@@ -1,4 +1,4 @@
-import InvalidDomainException from '../../exceptions/shared/invalid_domain_exception.ts'
+import InvalidDomainException from '../../exceptions/shared/invalid_domain.exception.ts'
 import { EMAIL_FORMAT_REGEX, MAX_EMAIL_LENGTH } from '../../shared/consts.ts'
 
 export class Email {

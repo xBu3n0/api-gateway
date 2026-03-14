@@ -1,4 +1,4 @@
-import InvalidDomainException from '../../exceptions/shared/invalid_domain_exception.ts'
+import InvalidDomainException from '../../exceptions/shared/invalid_domain.exception.ts'
 import { RoleEnum } from '../../enums/auth/role.enum.ts'
 
 export class Role {

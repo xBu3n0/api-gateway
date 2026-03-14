@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 
 test.group('ProductQuantity Primitive', () => {

@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import SensitivePrimitive from '#domain/primitives/shared/sensitive.primitive'
 
 const CVV_REGEX = /^\d{3}$/

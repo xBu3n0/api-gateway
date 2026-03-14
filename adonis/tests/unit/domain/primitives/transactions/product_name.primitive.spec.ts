@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
 
 const longProductName = 'a'.repeat(256)

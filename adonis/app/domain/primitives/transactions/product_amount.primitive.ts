@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 
 export class ProductAmount {
   private constructor(public readonly value: number) {}

@@ -1,4 +1,4 @@
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '#domain/shared/consts'
 import SensitivePrimitive from '#domain/primitives/shared/sensitive.primitive'
 

@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import InvalidDomainException from '#domain/exceptions/shared/invalid_domain_exception'
+import InvalidDomainException from '#domain/exceptions/shared/invalid_domain.exception'
 import { Role } from '#domain/primitives/auth/role.primitive'
 import { RoleEnum } from '#domain/enums/auth/role.enum'
 
@@ -30,16 +30,25 @@ test.group('Role Primitive', () => {
       assert.throws(createInvalidRole, InvalidDomainException)
     })
 
-  test('can check if it has a specific role', ({ assert }) => {
+  test('can check if it has the requested role', ({ assert }) => {
     // given
     const role = Role.create(RoleEnum.ADMIN)
 
     // when
     const hasAdminRole = role.is(RoleEnum.ADMIN)
-    const hasUserRole = role.is(RoleEnum.USER)
 
     // then
     assert.isTrue(hasAdminRole)
+  })
+
+  test('returns false when checking a different role', ({ assert }) => {
+    // given
+    const role = Role.create(RoleEnum.ADMIN)
+
+    // when
+    const hasUserRole = role.is(RoleEnum.USER)
+
+    // then
     assert.isFalse(hasUserRole)
   })
 })
