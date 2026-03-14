@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import ProductEntity from '#domain/entities/shared/product.entity'
-import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 
 test('builds a product entity from stored data', ({ assert }) => {
   // given
@@ -19,7 +19,7 @@ test('builds a product entity from stored data', ({ assert }) => {
   // then
   assert.equal(entity.id.value, 1)
   assert.equal(entity.name.value, record.name)
-  assert.equal(entity.amount.value, record.amount)
+  assert.equal(entity.amount.value, BigInt(record.amount))
 })
 
 test('updates the product name while keeping the original immutable', ({ assert }) => {
@@ -38,7 +38,7 @@ test('updates the product name while keeping the original immutable', ({ assert 
 
   // then
   assert.equal(entity.name.value, 'Basic Plan')
-  assert.equal(entity.amount.value, 9900)
+  assert.equal(entity.amount.value, 9900n)
   assert.equal(renamed.name.value, 'Premium Plan')
   assert.equal(renamed.amount.value, entity.amount.value)
   assert.equal(renamed.id.value, entity.id.value)
@@ -54,16 +54,16 @@ test('updates the product amount while keeping the original immutable', ({ asser
     createdAt: new Date(),
     updatedAt: new Date(),
   })
-  const updatedAmount = ProductAmount.create(19900)
+  const updatedAmount = ProductPrice.create(19900)
 
   // when
   const repriced = entity.changeAmount(updatedAmount)
 
   // then
   assert.equal(entity.name.value, 'Basic Plan')
-  assert.equal(entity.amount.value, 9900)
+  assert.equal(entity.amount.value, 9900n)
   assert.equal(repriced.name.value, entity.name.value)
-  assert.equal(repriced.amount.value, 19900)
+  assert.equal(repriced.amount.value, 19900n)
   assert.equal(repriced.id.value, entity.id.value)
   assert.notStrictEqual(entity, repriced)
 })

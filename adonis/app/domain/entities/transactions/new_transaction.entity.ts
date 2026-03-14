@@ -1,4 +1,4 @@
-import type { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
+import type { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 import type { CardLastNumbers } from '#domain/primitives/transactions/card_last_numbers.primitive'
 import type { ClientId } from '#domain/primitives/transactions/client_id.primitive'
 import type { ExternalTransactionId } from '#domain/primitives/transactions/external_transaction_id.primitive'
@@ -11,7 +11,7 @@ export default class NewTransactionEntity {
     readonly gatewayId: GatewayId,
     readonly externalId: ExternalTransactionId,
     readonly status: TransactionStatus,
-    readonly amount: ProductAmount,
+    readonly amount: ProductPrice,
     readonly cardLastNumbers: CardLastNumbers
   ) {}
 
@@ -19,7 +19,7 @@ export default class NewTransactionEntity {
     clientId: ClientId,
     gatewayId: GatewayId,
     externalId: ExternalTransactionId,
-    amount: ProductAmount,
+    amount: ProductPrice,
     cardLastNumbers: CardLastNumbers,
     status = TransactionStatus.pending()
   ) {

@@ -44,7 +44,7 @@ test.group('ProductService integration (real database)', (group) => {
 
     // then
     assert.equal(created.name.value, input.name)
-    assert.equal(created.amount.value, input.amount)
+    assert.equal(created.amount.value, BigInt(input.amount))
   })
 
   test('updates an existing product', async ({ assert }) => {
@@ -59,7 +59,7 @@ test.group('ProductService integration (real database)', (group) => {
     // then
     assert.equal(updated.id.value, product.id)
     assert.equal(updated.name.value, input.name)
-    assert.equal(updated.amount.value, input.amount)
+    assert.equal(updated.amount.value, BigInt(input.amount))
   })
 
   test('returns not found when trying to update a missing product', async ({ assert }) => {
@@ -98,7 +98,7 @@ test.group('ProductService integration (real database)', (group) => {
 
     // then
     assert.equal(byId.name.value, product.name)
-    assert.equal(byId.amount.value, product.amount)
+    assert.equal(byId.amount.value, BigInt(product.amount))
   })
 
   test('deletes a product', async ({ assert }) => {

@@ -1,4 +1,4 @@
-import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 import { CardLastNumbers } from '#domain/primitives/transactions/card_last_numbers.primitive'
 import { ClientId } from '#domain/primitives/transactions/client_id.primitive'
 import { ExternalTransactionId } from '#domain/primitives/transactions/external_transaction_id.primitive'
@@ -25,7 +25,7 @@ export default class TransactionEntity {
     readonly gatewayId: GatewayId,
     readonly externalId: ExternalTransactionId,
     readonly status: TransactionStatus,
-    readonly amount: ProductAmount,
+    readonly amount: ProductPrice,
     readonly cardLastNumbers: CardLastNumbers
   ) {}
 
@@ -36,7 +36,7 @@ export default class TransactionEntity {
       GatewayId.create(record.gatewayId),
       ExternalTransactionId.create(record.externalId),
       TransactionStatus.create(record.status),
-      ProductAmount.create(record.amount),
+      ProductPrice.create(record.amount),
       CardLastNumbers.create(record.cardLastNumbers)
     )
   }

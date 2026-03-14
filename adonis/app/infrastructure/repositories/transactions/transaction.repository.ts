@@ -8,7 +8,6 @@ import ClientEntity from '#domain/entities/shared/client.entity'
 import GatewayEntity from '#domain/entities/shared/gateway.entity'
 import ProductEntity from '#domain/entities/shared/product.entity'
 import TransactionEntity from '#domain/entities/shared/transaction.entity'
-import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import type { ClientId } from '#domain/primitives/transactions/client_id.primitive'
 import type { TransactionId } from '#domain/primitives/transactions/transaction_id.primitive'
@@ -28,7 +27,7 @@ export default class LucidTransactionRepository implements TransactionRepository
           gatewayId: payload.transaction.gatewayId.value,
           externalId: payload.transaction.externalId.value,
           status: payload.transaction.status.value,
-          amount: payload.transaction.amount.value,
+          amount: Number(payload.transaction.amount.value),
           cardLastNumbers: payload.transaction.cardLastNumbers.value,
         },
         { client: trx }
@@ -46,15 +45,7 @@ export default class LucidTransactionRepository implements TransactionRepository
       return transaction
     })
 
-    return TransactionEntity.fromRecord({
-      id: created.id,
-      clientId: created.clientId,
-      gatewayId: created.gatewayId,
-      externalId: created.externalId,
-      status: created.status,
-      amount: created.amount,
-      cardLastNumbers: created.cardLastNumbers,
-    })
+    return this.toEntity(created)
   }
 
   async update(entity: TransactionEntity) {
@@ -64,69 +55,25 @@ export default class LucidTransactionRepository implements TransactionRepository
     transaction.gatewayId = entity.gatewayId.value
     transaction.externalId = entity.externalId.value
     transaction.status = entity.status.value
-    transaction.amount = entity.amount.value
+    transaction.amount = Number(entity.amount.value)
     transaction.cardLastNumbers = entity.cardLastNumbers.value
 
     await transaction.save()
 
-    return TransactionEntity.fromRecord({
-      id: transaction.id,
-      clientId: transaction.clientId,
-      gatewayId: transaction.gatewayId,
-      externalId: transaction.externalId,
-      status: transaction.status,
-      amount: transaction.amount,
-      cardLastNumbers: transaction.cardLastNumbers,
-    })
+    return this.toEntity(transaction)
   }
 
   async findById(id: TransactionId) {
     const transaction = await Transaction.find(id.value)
-    if (!transaction) {
-      return null
-    }
 
-    return TransactionEntity.fromRecord({
-      id: transaction.id,
-      clientId: transaction.clientId,
-      gatewayId: transaction.gatewayId,
-      externalId: transaction.externalId,
-      status: transaction.status,
-      amount: transaction.amount,
-      cardLastNumbers: transaction.cardLastNumbers,
-    })
+    return transaction ? this.toEntity(transaction) : null
   }
 
   async list(filters: ListTransactionsFilters = {}) {
-    const query = Transaction.query()
-
-    if (filters.status) {
-      query.where('status', filters.status.value)
-    }
-
-    if (filters.clientId) {
-      query.where('client_id', filters.clientId.value)
-    }
-
-    if (filters.gatewayId) {
-      query.where('gateway_id', filters.gatewayId.value)
-    }
-
-    query.orderBy('id', 'desc')
-
+    const query = this.applyFilters(Transaction.query(), filters).orderBy('id', 'desc')
     const transactions = await query
 
-    return transactions.map((transaction) =>
-      TransactionEntity.fromRecord({
-        id: transaction.id,
-        clientId: transaction.clientId,
-        gatewayId: transaction.gatewayId,
-        externalId: transaction.externalId,
-        status: transaction.status,
-        amount: transaction.amount,
-        cardLastNumbers: transaction.cardLastNumbers,
-      })
-    )
+    return transactions.map((transaction) => this.toEntity(transaction))
   }
 
   async findDetailedById(id: TransactionId) {
@@ -145,23 +92,12 @@ export default class LucidTransactionRepository implements TransactionRepository
   }
 
   async listDetailed(filters: ListTransactionsFilters = {}) {
-    const query = Transaction.query().preload('client').preload('gateway').preload('products')
-
-    if (filters.status) {
-      query.where('status', filters.status.value)
-    }
-
-    if (filters.clientId) {
-      query.where('client_id', filters.clientId.value)
-    }
-
-    if (filters.gatewayId) {
-      query.where('gateway_id', filters.gatewayId.value)
-    }
-
-    query.orderBy('id', 'desc')
-
+    const query = this.applyFilters(
+      Transaction.query().preload('client').preload('gateway').preload('products'),
+      filters
+    ).orderBy('id', 'desc')
     const transactions = await query
+
     return transactions.map((transaction) => this.toDetails(transaction))
   }
 
@@ -195,15 +131,7 @@ export default class LucidTransactionRepository implements TransactionRepository
       priority: gatewayModel.priority,
     })
 
-    const entity = TransactionEntity.fromRecord({
-      id: transaction.id,
-      clientId: transaction.clientId,
-      gatewayId: transaction.gatewayId,
-      externalId: transaction.externalId,
-      status: transaction.status,
-      amount: transaction.amount,
-      cardLastNumbers: transaction.cardLastNumbers,
-    })
+    const entity = this.toEntity(transaction)
 
     const items = products.map((product) => {
       const productEntity = ProductEntity.fromRecord({
@@ -216,7 +144,7 @@ export default class LucidTransactionRepository implements TransactionRepository
       return {
         product: productEntity,
         quantity,
-        subtotal: ProductAmount.create(quantity.multiply(productEntity.amount.value)),
+        subtotal: productEntity.amount.multiply(quantity.value),
       }
     })
 
@@ -226,5 +154,36 @@ export default class LucidTransactionRepository implements TransactionRepository
       gateway,
       items,
     }
+  }
+
+  private toEntity(transaction: Transaction) {
+    return TransactionEntity.fromRecord({
+      id: transaction.id,
+      clientId: transaction.clientId,
+      gatewayId: transaction.gatewayId,
+      externalId: transaction.externalId,
+      status: transaction.status,
+      amount: transaction.amount,
+      cardLastNumbers: transaction.cardLastNumbers,
+    })
+  }
+
+  private applyFilters<TQuery extends ReturnType<typeof Transaction.query>>(
+    query: TQuery,
+    filters: ListTransactionsFilters
+  ) {
+    if (filters.status) {
+      query.where('status', filters.status.value)
+    }
+
+    if (filters.clientId) {
+      query.where('client_id', filters.clientId.value)
+    }
+
+    if (filters.gatewayId) {
+      query.where('gateway_id', filters.gatewayId.value)
+    }
+
+    return query
   }
 }

@@ -9,7 +9,7 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
       id: transaction.id.value,
       externalId: transaction.externalId.value,
       status: transaction.status.value,
-      amount: transaction.amount.value,
+      amount: Number(transaction.amount.value),
       cardLastNumbers: transaction.cardLastNumbers.value,
       client: {
         id: client.id.value,
@@ -27,10 +27,9 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
         product: {
           id: item.product.id.value,
           name: item.product.name.value,
-          amount: item.product.amount.value,
         },
         quantity: item.quantity.value,
-        subtotal: item.subtotal.value,
+        subtotal: Number(item.subtotal.value),
       })),
     }
   }

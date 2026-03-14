@@ -48,7 +48,7 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
   async create(newProduct: NewProductEntity) {
     const product = await Product.create({
       name: newProduct.name.value,
-      amount: newProduct.amount.value,
+      amount: Number(newProduct.amount.value),
     })
 
     return ProductEntity.fromRecord({
@@ -62,7 +62,7 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
     const product = await Product.findOrFail(entity.id.value)
 
     product.name = entity.name.value
-    product.amount = entity.amount.value
+    product.amount = Number(entity.amount.value)
 
     await product.save()
 

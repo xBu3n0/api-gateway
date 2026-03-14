@@ -10,6 +10,7 @@ export default class PurchasesController {
 
   async store({ auth, request, serialize }: HttpContext) {
     const payload = await request.validateUsing(createPurchaseValidator)
+
     const transaction = await this.transactionService.purchase({
       userId: auth.getUserOrFail().id,
       ...payload,

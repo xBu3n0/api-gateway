@@ -47,14 +47,14 @@ test.group('TransactionService integration (real database)', (group) => {
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [
-        { productId: firstProduct.id, quantity: 2 },
-        { productId: secondProduct.id, quantity: 1 },
+        { productId: firstProduct.id, quantity: 2, price: firstProduct.amount },
+        { productId: secondProduct.id, quantity: 1, price: secondProduct.amount },
       ],
     })
 
     // then
     assert.equal(processor.chargeCalls.length, 1)
-    assert.equal(purchase.transaction.amount.value, 2500)
+    assert.equal(purchase.transaction.amount.value, 2500n)
     assert.equal(purchase.transaction.externalId.value, 'gw-1-tx')
     assert.equal(purchase.gateway.id.value, gateway.id)
 
@@ -85,7 +85,7 @@ test.group('TransactionService integration (real database)', (group) => {
       email: 'john@betalent.tech',
       cardNumber: '5569000000006063',
       cvv: '010',
-      items: [{ productId: product.id, quantity: 1 }],
+      items: [{ productId: product.id, quantity: 1, price: product.amount }],
     })
 
     // then
@@ -118,8 +118,8 @@ test.group('TransactionService integration (real database)', (group) => {
         cardNumber: '5569000000006063',
         cvv: '010',
         items: [
-          { productId: product.id, quantity: 1 },
-          { productId: 999999, quantity: 1 },
+          { productId: product.id, quantity: 1, price: product.amount },
+          { productId: 999999, quantity: 1, price: 1000 },
         ],
       })
 
@@ -148,7 +148,7 @@ test.group('TransactionService integration (real database)', (group) => {
       email: 'john@betalent.tech',
       cardNumber: '5569000000006063',
       cvv: '010',
-      items: [{ productId: product.id, quantity: 1 }],
+      items: [{ productId: product.id, quantity: 1, price: product.amount }],
     })
 
     // when

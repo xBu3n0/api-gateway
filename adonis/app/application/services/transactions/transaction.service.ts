@@ -20,8 +20,8 @@ import { CardNumber } from '#domain/primitives/transactions/card_number.primitiv
 import { ClientName } from '#domain/primitives/transactions/client_name.primitive'
 import { Cvv } from '#domain/primitives/transactions/cvv.primitive'
 import { ExternalTransactionId } from '#domain/primitives/transactions/external_transaction_id.primitive'
-import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import { ProductId } from '#domain/primitives/transactions/product_id.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import { ClientId } from '#domain/primitives/transactions/client_id.primitive'
 import { GatewayId } from '#domain/primitives/transactions/gateway_id.primitive'
@@ -37,6 +37,7 @@ export interface PurchaseInput {
   items: Array<{
     productId: number
     quantity: number
+    price: number
   }>
 }
 
@@ -44,6 +45,12 @@ export interface TransactionFiltersInput {
   status?: TransactionStatusEnum
   clientId?: number
   gatewayId?: number
+}
+
+interface NormalizedPurchaseItem {
+  productId: ProductId
+  quantity: ProductQuantity
+  price: ProductPrice
 }
 
 @inject()
@@ -63,32 +70,15 @@ export default class TransactionService {
     const cardNumber = CardNumber.create(input.cardNumber)
     const cvv = Cvv.create(input.cvv)
     const items = this.normalizeItems(input.items)
-
-    const products = await this.fetchProducts(items.map((item) => item.productId))
-
-    const totalAmount = ProductAmount.create(
-      items.reduce((total, item) => {
-        const product = products.find((candidate) => candidate.id.value === item.productId.value)!
-        return total + item.quantity.multiply(product.amount.value)
-      }, 0)
-    )
-
-    const client =
-      (await this.clientRepository.findByEmail(email)) ??
-      (await this.clientRepository.create(NewClientEntity.create(userId, clientName, email)))
-
+    
+    await this.ensureProductsExist(items.map((item) => item.productId))
+    
+    const totalPriceInCents = this.calculateTotalPriceInCents(items)
+    const client = await this.findOrCreateClient(userId, clientName, email)
     const gateways = await this.gatewayRepository.listActiveByPriority()
+
     if (gateways.length === 0) {
       throw new NoActiveGatewayException('No active gateway is available to process the purchase.')
-    }
-
-    for (const item of items) {
-      const product = products.find((candidate) => candidate.id.value === item.productId.value)!
-      if (product.amount.value < item.quantity.value) {
-        throw new ProductNotFoundException(
-          `Product '${product.id.value}' does not have enough quantity. Requested: ${item.quantity.value}, Available: ${product.amount.value}`
-        )
-      }
     }
 
     const draft = await this.transactionRepository.createDraftWithItems({
@@ -96,7 +86,7 @@ export default class TransactionService {
         client.id,
         gateways[0].id,
         ExternalTransactionId.create(`pending-${crypto.randomUUID()}`),
-        totalAmount,
+        totalPriceInCents,
         CardLastNumbers.create(cardNumber.lastFourDigits())
       ),
       items: items.map((item) => ({
@@ -113,7 +103,7 @@ export default class TransactionService {
       try {
         const processor = this.gatewayProcessorRegistry.getFor(gateway)
         const result = await processor.charge({
-          amount: totalAmount.value,
+          amount: Number(totalPriceInCents.value),
           name: clientName.value,
           email: email.value,
           cardNumber: cardNumber.value,
@@ -138,21 +128,7 @@ export default class TransactionService {
   }
 
   async listTransactions(filters: TransactionFiltersInput = {}) {
-    const resolvedFilters: ListTransactionsFilters = {}
-
-    if (filters.status) {
-      resolvedFilters.status = TransactionStatus.create(filters.status)
-    }
-
-    if (filters.clientId !== undefined) {
-      resolvedFilters.clientId = ClientId.create(filters.clientId)
-    }
-
-    if (filters.gatewayId !== undefined) {
-      resolvedFilters.gatewayId = GatewayId.create(filters.gatewayId)
-    }
-
-    return this.transactionRepository.list(resolvedFilters)
+    return this.transactionRepository.list(this.resolveFilters(filters))
   }
 
   async getById(id: number) {
@@ -195,24 +171,42 @@ export default class TransactionService {
   }
 
   private normalizeItems(input: PurchaseInput['items']) {
-    const aggregated = new Map<number, ProductQuantity>()
-
-    for (const item of input) {
-      const productId = ProductId.create(item.productId)
-      const quantity = ProductQuantity.create(item.quantity)
-      const current = aggregated.get(productId.value)
-      const nextQuantity = current ? current.value + quantity.value : quantity.value
-
-      aggregated.set(productId.value, ProductQuantity.create(nextQuantity))
-    }
-
-    return [...aggregated.entries()].map(([productId, quantity]) => ({
-      productId: ProductId.create(productId),
-      quantity,
+    return input.map((item) => ({
+      productId: ProductId.create(item.productId),
+      quantity: ProductQuantity.create(item.quantity),
+      price: ProductPrice.create(item.price),
     }))
   }
 
-  private async fetchProducts(productIds: ProductId[]) {
+  private resolveFilters(filters: TransactionFiltersInput) {
+    const resolvedFilters: ListTransactionsFilters = {}
+
+    if (filters.status) {
+      resolvedFilters.status = TransactionStatus.create(filters.status)
+    }
+
+    if (filters.clientId !== undefined) {
+      resolvedFilters.clientId = ClientId.create(filters.clientId)
+    }
+
+    if (filters.gatewayId !== undefined) {
+      resolvedFilters.gatewayId = GatewayId.create(filters.gatewayId)
+    }
+
+    return resolvedFilters
+  }
+
+  private calculateTotalPriceInCents(items: NormalizedPurchaseItem[]) {
+    let totalPriceInCents = ProductPrice.create(0)
+
+    for (const item of items) {
+      totalPriceInCents = totalPriceInCents.sum(item.price.multiply(item.quantity.value))
+    }
+
+    return totalPriceInCents
+  }
+
+  private async ensureProductsExist(productIds: ProductId[]) {
     const products = await this.productRepository.findByIds(productIds)
     const foundIds = new Set(products.map((product) => product.id.value))
     const missingProductId = productIds.find((productId) => !foundIds.has(productId.value))
@@ -220,7 +214,12 @@ export default class TransactionService {
     if (missingProductId) {
       throw new ProductNotFoundException(`Product '${missingProductId.value}' was not found.`)
     }
+  }
 
-    return products
+  private async findOrCreateClient(userId: UserId, clientName: ClientName, email: Email) {
+    return (
+      (await this.clientRepository.findByEmail(email)) ??
+      this.clientRepository.create(NewClientEntity.create(userId, clientName, email))
+    )
   }
 }

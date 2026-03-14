@@ -8,7 +8,7 @@ export default class ProductTransformer extends BaseTransformer<ProductEntity> {
     return {
       id: id.value,
       name: name.value,
-      amount: amount.value,
+      amount: Number(amount.value),
     }
   }
 }

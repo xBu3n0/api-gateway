@@ -3,8 +3,8 @@ import type GatewayEntity from '#domain/entities/shared/gateway.entity'
 import type ProductEntity from '#domain/entities/shared/product.entity'
 import type TransactionEntity from '#domain/entities/shared/transaction.entity'
 import type NewTransactionEntity from '#domain/entities/transactions/new_transaction.entity'
-import type { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import type { ProductId } from '#domain/primitives/transactions/product_id.primitive'
+import type { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 import type { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import type { TransactionId } from '#domain/primitives/transactions/transaction_id.primitive'
 import type { ClientId } from '#domain/primitives/transactions/client_id.primitive'
@@ -14,7 +14,7 @@ import type { TransactionStatus } from '#domain/primitives/transactions/transact
 export interface TransactionItemRecord {
   product: ProductEntity
   quantity: ProductQuantity
-  subtotal: ProductAmount
+  subtotal: ProductPrice
 }
 
 export interface TransactionDetails {
