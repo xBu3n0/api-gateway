@@ -1,7 +1,6 @@
 import { test } from '@japa/runner'
 import Client from '#models/transactions/client'
 import Transaction from '#models/transactions/transaction'
-import type TransactionService from '#services/transactions/transaction.service'
 import ProductNotFoundException from '#domain/exceptions/transactions/product_not_found.exception'
 import TransactionNotFoundException from '#domain/exceptions/transactions/transaction_not_found.exception'
 import { GatewayFactory } from '#database/factories/gateway_factory'
@@ -162,7 +161,7 @@ test.group('TransactionService integration (real database)', (group) => {
 
   test('returns not found when the transaction id does not exist', async ({ assert }) => {
     // given
-    const service = (await makeTransactionService([])) as TransactionService
+    const service = await makeTransactionService([])
 
     // when
     const getMissingTransaction = () => service.getById(999999)

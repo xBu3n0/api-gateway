@@ -97,6 +97,38 @@ export default class LucidTransactionRepository implements TransactionRepository
     })
   }
 
+  async list(filters: ListTransactionsFilters = {}) {
+    const query = Transaction.query()
+
+    if (filters.status) {
+      query.where('status', filters.status.value)
+    }
+
+    if (filters.clientId) {
+      query.where('client_id', filters.clientId.value)
+    }
+
+    if (filters.gatewayId) {
+      query.where('gateway_id', filters.gatewayId.value)
+    }
+
+    query.orderBy('id', 'desc')
+
+    const transactions = await query
+
+    return transactions.map((transaction) =>
+      TransactionEntity.fromRecord({
+        id: transaction.id,
+        clientId: transaction.clientId,
+        gatewayId: transaction.gatewayId,
+        externalId: transaction.externalId,
+        status: transaction.status,
+        amount: transaction.amount,
+        cardLastNumbers: transaction.cardLastNumbers,
+      })
+    )
+  }
+
   async findDetailedById(id: TransactionId) {
     const transaction = await Transaction.query()
       .where('id', id.value)

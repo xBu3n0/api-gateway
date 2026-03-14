@@ -43,6 +43,8 @@ export default abstract class TransactionRepositoryInterface {
 
   abstract update(entity: TransactionEntity): Promise<TransactionEntity>
 
+  abstract list(filters?: ListTransactionsFilters): Promise<TransactionEntity[]>
+
   abstract findById(id: TransactionId): Promise<TransactionEntity | null>
 
   abstract findDetailedById(id: TransactionId): Promise<TransactionDetails | null>

@@ -1,7 +1,7 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import TransactionService from '#services/transactions/transaction.service'
-import TransactionTransformer from '#transformers/transaction_transformer'
+import TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
 import { createPurchaseValidator } from '#validators/purchase'
 
 @inject()
@@ -15,6 +15,6 @@ export default class PurchasesController {
       ...payload,
     })
 
-    return serialize(TransactionTransformer.transform(transaction))
+    return serialize(TransactionDetailsTransformer.transform(transaction))
   }
 }

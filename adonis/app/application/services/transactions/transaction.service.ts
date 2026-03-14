@@ -144,15 +144,15 @@ export default class TransactionService {
       resolvedFilters.status = TransactionStatus.create(filters.status)
     }
 
-    if (typeof filters.clientId === 'number') {
-      resolvedFilters.clientId = this.ensureClientId(filters.clientId)
+    if (filters.clientId !== undefined) {
+      resolvedFilters.clientId = ClientId.create(filters.clientId)
     }
 
-    if (typeof filters.gatewayId === 'number') {
-      resolvedFilters.gatewayId = this.ensureGatewayId(filters.gatewayId)
+    if (filters.gatewayId !== undefined) {
+      resolvedFilters.gatewayId = GatewayId.create(filters.gatewayId)
     }
 
-    return this.transactionRepository.listDetailed(resolvedFilters)
+    return this.transactionRepository.list(resolvedFilters)
   }
 
   async getById(id: number) {
@@ -222,13 +222,5 @@ export default class TransactionService {
     }
 
     return products
-  }
-
-  private ensureClientId(id: number) {
-    return ClientId.create(id)
-  }
-
-  private ensureGatewayId(id: number) {
-    return GatewayId.create(id)
   }
 }

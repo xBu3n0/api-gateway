@@ -2,7 +2,7 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import ClientService from '#services/transactions/client.service'
 import ClientTransformer from '#transformers/client_transformer'
-import TransactionTransformer from '#transformers/transaction_transformer'
+import TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
 
 @inject()
 export default class ClientsController {
@@ -19,7 +19,7 @@ export default class ClientsController {
 
     return serialize({
       ...ClientTransformer.transform(result.client),
-      transactions: TransactionTransformer.transform(result.transactions),
+      transactions: TransactionDetailsTransformer.transform(result.transactions),
     })
   }
 }
