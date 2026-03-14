@@ -1,6 +1,9 @@
 import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
+import type { ChargeGatewayInput, GatewayChargeResult } from '#application/gateways/payment_gateway'
+import type PaymentGateway from '#application/gateways/payment_gateway'
+import type GatewayEntity from '#domain/entities/shared/gateway.entity'
 import { RoleEnum } from '#enums/auth/role.enum'
 import { TransactionStatusEnum } from '#domain/enums/transactions/transaction_status.enum'
 import { UserFactory } from '#database/factories/user_factory'
@@ -9,8 +12,27 @@ import { GatewayFactory } from '#database/factories/gateway_factory'
 import { ProductFactory } from '#database/factories/product_factory'
 import { TransactionFactory } from '#database/factories/transaction_factory'
 import { TransactionProductFactory } from '#database/factories/transaction_product_factory'
+import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
 
 const TRANSACTIONS_BASE_URL = '/api/v1/transactions'
+
+class NoopGatewayProcessor implements PaymentGateway {
+  constructor(private readonly gatewayName: string) {}
+
+  supports(gateway: GatewayEntity) {
+    return gateway.name.value === this.gatewayName
+  }
+
+  async setup() {}
+
+  async charge(_input: ChargeGatewayInput): Promise<GatewayChargeResult> {
+    return {
+      externalId: `${this.gatewayName.toLowerCase().replaceAll(' ', '-')}-test-transaction`,
+    }
+  }
+
+  async refund(_externalId: string) {}
+}
 
 async function runAceCommand(commandName: string, args: string[]) {
   const ace = await app.container.make('ace')
@@ -41,9 +63,18 @@ async function cleanupTransactions() {
 
 test.group('TransactionsController | functional', (group) => {
   group.setup(async () => {
+    const fakeGatewayRegistry = new GatewayProcessorRegistry([
+      new NoopGatewayProcessor('Gateway 1'),
+      new NoopGatewayProcessor('Gateway 2'),
+    ])
+
+    app.container.swap(GatewayProcessorRegistry, () => fakeGatewayRegistry)
     await runAceCommand('migration:run', ['--compact-output', '--no-schema-generate'])
 
-    return () => runAceCommand('migration:reset', ['--compact-output', '--no-schema-generate'])
+    return async () => {
+      app.container.restore(GatewayProcessorRegistry)
+      await runAceCommand('migration:reset', ['--compact-output', '--no-schema-generate'])
+    }
   })
 
   group.each.setup(async () => {
