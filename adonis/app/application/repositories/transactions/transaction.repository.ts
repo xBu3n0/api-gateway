@@ -3,7 +3,6 @@ import type GatewayEntity from '#domain/entities/shared/gateway.entity'
 import type ProductEntity from '#domain/entities/shared/product.entity'
 import type TransactionEntity from '#domain/entities/shared/transaction.entity'
 import type NewTransactionEntity from '#domain/entities/transactions/new_transaction.entity'
-import type { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import type { ProductId } from '#domain/primitives/transactions/product_id.primitive'
 import type { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import type { TransactionId } from '#domain/primitives/transactions/transaction_id.primitive'
@@ -14,7 +13,6 @@ import type { TransactionStatus } from '#domain/primitives/transactions/transact
 export interface TransactionItemRecord {
   product: ProductEntity
   quantity: ProductQuantity
-  subtotal: ProductAmount
 }
 
 export interface TransactionDetails {
@@ -42,6 +40,8 @@ export default abstract class TransactionRepositoryInterface {
   abstract createDraftWithItems(payload: CreateTransactionDraftPayload): Promise<TransactionEntity>
 
   abstract update(entity: TransactionEntity): Promise<TransactionEntity>
+
+  abstract list(filters?: ListTransactionsFilters): Promise<TransactionEntity[]>
 
   abstract findById(id: TransactionId): Promise<TransactionEntity | null>
 

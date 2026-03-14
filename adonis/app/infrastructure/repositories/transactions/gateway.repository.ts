@@ -50,7 +50,7 @@ export default class LucidGatewayRepository implements GatewayRepositoryInterfac
     const gateway = await Gateway.findOrFail(entity.id.value)
 
     gateway.name = entity.name.value
-    gateway.isActive = entity.status.value
+    gateway.isActive = entity.status.isActive()
     gateway.priority = entity.priority.value
 
     await gateway.save()

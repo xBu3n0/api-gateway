@@ -8,7 +8,7 @@ export default class GatewayTransformer extends BaseTransformer<GatewayEntity> {
     return {
       id: id.value,
       name: name.value,
-      isActive: status.value,
+      isActive: status.isActive(),
       priority: priority.value,
     }
   }

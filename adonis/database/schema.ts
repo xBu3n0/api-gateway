@@ -78,16 +78,16 @@ export class GatewaySchema extends BaseModel {
 }
 
 export class ProductSchema extends BaseModel {
-  static $columns = ['amount', 'createdAt', 'id', 'name', 'updatedAt'] as const
+  static $columns = ['createdAt', 'id', 'name', 'quantity', 'updatedAt'] as const
   $columns = ProductSchema.$columns
-  @column()
-  declare amount: number
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare name: string
+  @column()
+  declare quantity: number
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

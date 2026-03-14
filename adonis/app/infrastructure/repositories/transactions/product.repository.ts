@@ -11,7 +11,7 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
       ProductEntity.fromRecord({
         id: product.id,
         name: product.name,
-        amount: product.amount,
+        quantity: product.quantity,
       })
     )
   }
@@ -25,7 +25,7 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
     return ProductEntity.fromRecord({
       id: product.id,
       name: product.name,
-      amount: product.amount,
+      quantity: product.quantity,
     })
   }
 
@@ -40,7 +40,7 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
       ProductEntity.fromRecord({
         id: product.id,
         name: product.name,
-        amount: product.amount,
+        quantity: product.quantity,
       })
     )
   }
@@ -48,13 +48,13 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
   async create(newProduct: NewProductEntity) {
     const product = await Product.create({
       name: newProduct.name.value,
-      amount: newProduct.amount.value,
+      quantity: Number(newProduct.quantity.value),
     })
 
     return ProductEntity.fromRecord({
       id: product.id,
       name: product.name,
-      amount: product.amount,
+      quantity: product.quantity,
     })
   }
 
@@ -62,14 +62,14 @@ export default class LucidProductRepository implements ProductRepositoryInterfac
     const product = await Product.findOrFail(entity.id.value)
 
     product.name = entity.name.value
-    product.amount = entity.amount.value
+    product.quantity = Number(entity.quantity.value)
 
     await product.save()
 
     return ProductEntity.fromRecord({
       id: product.id,
       name: product.name,
-      amount: product.amount,
+      quantity: product.quantity,
     })
   }
 

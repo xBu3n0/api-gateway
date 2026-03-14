@@ -3,18 +3,18 @@ import ProductRepositoryInterface from '#repositories/transactions/product.repos
 import ProductNotFoundException from '#domain/exceptions/transactions/product_not_found.exception'
 import ProductEntity from '#domain/entities/shared/product.entity'
 import NewProductEntity from '#domain/entities/transactions/new_product.entity'
-import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
 import { ProductId } from '#domain/primitives/transactions/product_id.primitive'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
+import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 
 export interface CreateProductInput {
   name: string
-  amount: number
+  quantity: number
 }
 
 export interface UpdateProductInput {
   name?: string
-  amount?: number
+  quantity?: number
 }
 
 @inject()
@@ -28,7 +28,7 @@ export default class ProductService {
   async create(input: CreateProductInput) {
     const product = NewProductEntity.create(
       ProductName.create(input.name),
-      ProductAmount.create(input.amount)
+      ProductQuantity.create(input.quantity)
     )
 
     return this.productRepository.create(product)
@@ -48,8 +48,8 @@ export default class ProductService {
       updated = updated.changeName(ProductName.create(input.name))
     }
 
-    if (typeof input.amount === 'number') {
-      updated = updated.changeAmount(ProductAmount.create(input.amount))
+    if (typeof input.quantity === 'number') {
+      updated = updated.changeQuantity(ProductQuantity.create(input.quantity))
     }
 
     return this.productRepository.update(updated)

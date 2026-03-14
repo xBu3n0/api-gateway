@@ -11,6 +11,7 @@ export const createPurchaseValidator = vine.create({
       vine.object({
         productId: vine.number().withoutDecimals().positive(),
         quantity: vine.number().withoutDecimals().positive(),
+        price: vine.string().regex(/^\d+\.\d{2}$/),
       })
     )
     .minLength(1),
