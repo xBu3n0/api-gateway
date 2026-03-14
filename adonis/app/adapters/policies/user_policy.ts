@@ -12,22 +12,46 @@ export default class UserPolicy extends BasePolicy {
   }
 
   create(user: User): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+    return user.role === RoleEnum.MANAGER
   }
 
   readAll(user: User): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+    return user.role === RoleEnum.MANAGER
   }
 
   read(user: User, _accessedUser: UserEntity): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+    return user.role === RoleEnum.MANAGER
   }
 
-  update(user: User, _accessedUser: UserEntity): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+  update(user: User, accessedUser: UserEntity): AuthorizerResponse {
+    if (user.role !== RoleEnum.MANAGER) {
+      return false
+    }
+
+    if (accessedUser.role.is(RoleEnum.ADMIN)) {
+      return false
+    }
+
+    if (accessedUser.role.is(RoleEnum.MANAGER) && accessedUser.id.value !== user.id) {
+      return false
+    }
+
+    return true
   }
 
-  delete(user: User, _accessedUser: UserEntity): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+  delete(user: User, accessedUser: UserEntity): AuthorizerResponse {
+    if (user.role !== RoleEnum.MANAGER) {
+      return false
+    }
+
+    if (accessedUser.role.is(RoleEnum.ADMIN)) {
+      return false
+    }
+
+    if (accessedUser.role.is(RoleEnum.MANAGER) && accessedUser.id.value !== user.id) {
+      return false
+    }
+
+    return true
   }
 }

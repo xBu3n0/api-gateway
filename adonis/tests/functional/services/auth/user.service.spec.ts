@@ -146,7 +146,7 @@ test.group('UserService integration (real database)', (group) => {
     await assert.rejects(updateMissingUser, UserNotFoundException)
   })
 
-  test('lists users, fetches by id/email, and deletes a user', async ({ assert }) => {
+  test('lists users', async ({ assert }) => {
     // given
     const service = await makeService()
     const first = await UserFactory.merge({
@@ -162,25 +162,49 @@ test.group('UserService integration (real database)', (group) => {
 
     // then
     assert.includeMembers(listedEmails, [first.email, second.email])
+  })
+
+  test('fetches a user by id', async ({ assert }) => {
+    // given
+    const service = await makeService()
+    const user = await UserFactory.merge({
+      role: RoleEnum.USER,
+    }).create()
 
     // when
-    const byId = await service.getById(first.id)
+    const byId = await service.getById(user.id)
 
     // then
-    assert.equal(byId.email.value, first.email)
+    assert.equal(byId.email.value, user.email)
+  })
+
+  test('fetches a user by email', async ({ assert }) => {
+    // given
+    const service = await makeService()
+    const user = await UserFactory.merge({
+      role: RoleEnum.FINANCE,
+    }).create()
 
     // when
-    const byEmail = await service.findByEmail(second.email)
+    const byEmail = await service.findByEmail(user.email)
 
     // then
     assert.isNotNull(byEmail)
-    assert.equal(byEmail!.id.value, second.id)
+    assert.equal(byEmail!.id.value, user.id)
+  })
+
+  test('deletes a user', async ({ assert }) => {
+    // given
+    const service = await makeService()
+    const user = await UserFactory.merge({
+      role: RoleEnum.USER,
+    }).create()
 
     // when
-    await service.delete(first.id)
-    const deletedUser = await service.findByEmail(first.email)
+    await service.delete(user.id)
 
     // then
+    const deletedUser = await service.findByEmail(user.email)
     assert.isNull(deletedUser)
   })
 

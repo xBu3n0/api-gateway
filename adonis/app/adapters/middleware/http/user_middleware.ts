@@ -6,6 +6,7 @@ import PermissionDeniedException from '#domain/exceptions/shared/permission_deni
 import UserService from '#services/auth/user.service'
 import UserPolicy from '#policies/user_policy'
 import UserEntity from '#domain/entities/shared/user.entity'
+import { RoleEnum } from '#enums/auth/role.enum'
 
 /**
  * Middleware to handle user authentication and authorization based on specified guards and abilities.
@@ -23,12 +24,17 @@ export default class UserMiddleware {
     } = {}
   ) {
     await ctx.auth.authenticateUsing(options.guards)
+    const authUser = ctx.auth.getUserOrFail()
 
     let refUser: UserEntity | null = null
 
     for (const ability of options.abilities || []) {
       switch (ability) {
         case 'create':
+          if (authUser.role === RoleEnum.MANAGER && ctx.request.input('role') === RoleEnum.ADMIN) {
+            throw new PermissionDeniedException()
+          }
+
           if (await ctx.bouncer.with(UserPolicy).denies(ability)) {
             throw new PermissionDeniedException()
           }
@@ -41,6 +47,14 @@ export default class UserMiddleware {
         default:
           if (!refUser) {
             refUser = await this.userService.getById(Number(ctx.params.id))
+          }
+
+          if (
+            ability === 'update' &&
+            authUser.role === RoleEnum.MANAGER &&
+            ctx.request.input('role') === RoleEnum.ADMIN
+          ) {
+            throw new PermissionDeniedException()
           }
 
           if (await ctx.bouncer.with(UserPolicy).denies(ability, refUser)) {

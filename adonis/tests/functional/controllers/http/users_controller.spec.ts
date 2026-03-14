@@ -42,6 +42,8 @@ test.group('UsersController | functional', (group) => {
   })
 
   test('rejects guests when listing users', async ({ client }) => {
+    // given
+
     // when
     const response = await client.get(USERS_BASE_URL)
 
@@ -49,12 +51,12 @@ test.group('UsersController | functional', (group) => {
     response.assertStatus(401)
   })
 
-  test('rejects non-admin users when creating a user', async ({ client }) => {
+  test('rejects finance users when creating a user', async ({ client }) => {
     // given
-    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
 
     // when
-    const response = await client.post(USERS_BASE_URL).loginAs(manager).json({
+    const response = await client.post(USERS_BASE_URL).loginAs(finance).json({
       email: 'created-user@example.com',
       password: 'password123',
       passwordConfirmation: 'password123',
@@ -98,6 +100,48 @@ test.group('UsersController | functional', (group) => {
     assert.notProperty(user, 'password')
   })
 
+  test('creates a user for managers', async ({ client, assert }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+
+    // when
+    const response = await client.post(USERS_BASE_URL).loginAs(manager).json({
+      email: 'created-by-manager@example.com',
+      password: 'password123',
+      passwordConfirmation: 'password123',
+      role: RoleEnum.USER,
+    })
+
+    // then
+    response.assertStatus(200)
+    const { data: user } = response.body()
+    response.assertBodyContains({
+      data: {
+        user: {
+          email: 'created-by-manager@example.com',
+          role: RoleEnum.USER,
+        },
+      },
+    })
+    assert.notProperty(user, 'password')
+  })
+
+  test('rejects managers when creating an admin user', async ({ client }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+
+    // when
+    const response = await client.post(USERS_BASE_URL).loginAs(manager).json({
+      email: 'created-admin@example.com',
+      password: 'password123',
+      passwordConfirmation: 'password123',
+      role: RoleEnum.ADMIN,
+    })
+
+    // then
+    response.assertStatus(403)
+  })
+
   test('lists users for admins', async ({ client, assert }) => {
     // given
     const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
@@ -125,6 +169,25 @@ test.group('UsersController | functional', (group) => {
 
     // when
     const response = await client.get(`${USERS_BASE_URL}/${user.id}`).loginAs(admin)
+
+    // then
+    response.assertStatus(200)
+    response.assertBody({
+      data: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  })
+
+  test('shows a user for managers', async ({ client }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
+
+    // when
+    const response = await client.get(`${USERS_BASE_URL}/${user.id}`).loginAs(manager)
 
     // then
     response.assertStatus(200)
@@ -174,6 +237,77 @@ test.group('UsersController | functional', (group) => {
     assert.equal(updatedUser.role, RoleEnum.MANAGER)
   })
 
+  test('updates a non-admin user for managers', async ({ client, assert }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
+
+    // when
+    const response = await client.patch(`${USERS_BASE_URL}/${user.id}`).loginAs(manager).json({
+      email: 'updated-by-manager@example.com',
+      role: RoleEnum.FINANCE,
+    })
+
+    // then
+    response.assertStatus(200)
+    response.assertBody({
+      data: {
+        id: user.id,
+        email: 'updated-by-manager@example.com',
+        role: RoleEnum.FINANCE,
+      },
+    })
+
+    const updatedUser = await User.findOrFail(user.id)
+    assert.equal(updatedUser.email, 'updated-by-manager@example.com')
+    assert.equal(updatedUser.role, RoleEnum.FINANCE)
+  })
+
+  test('rejects managers when updating an admin', async ({ client }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
+
+    // when
+    const response = await client.patch(`${USERS_BASE_URL}/${admin.id}`).loginAs(manager).json({
+      email: 'blocked-update@example.com',
+    })
+
+    // then
+    response.assertStatus(403)
+  })
+
+  test('rejects managers when updating another manager', async ({ client }) => {
+    // given
+    const actingManager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const targetManager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+
+    // when
+    const response = await client
+      .patch(`${USERS_BASE_URL}/${targetManager.id}`)
+      .loginAs(actingManager)
+      .json({
+        email: 'blocked-manager-update@example.com',
+      })
+
+    // then
+    response.assertStatus(403)
+  })
+
+  test('rejects managers when promoting a user to admin', async ({ client }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
+
+    // when
+    const response = await client.patch(`${USERS_BASE_URL}/${user.id}`).loginAs(manager).json({
+      role: RoleEnum.ADMIN,
+    })
+
+    // then
+    response.assertStatus(403)
+  })
+
   test('deletes a user for admins', async ({ client, assert }) => {
     // given
     const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
@@ -188,5 +322,45 @@ test.group('UsersController | functional', (group) => {
       message: 'User removed successfully',
     })
     assert.isNull(await User.find(user.id))
+  })
+
+  test('deletes a non-admin user for managers', async ({ client, assert }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
+
+    // when
+    const response = await client.delete(`${USERS_BASE_URL}/${user.id}`).loginAs(manager)
+
+    // then
+    response.assertStatus(200)
+    response.assertBody({
+      message: 'User removed successfully',
+    })
+    assert.isNull(await User.find(user.id))
+  })
+
+  test('rejects managers when deleting an admin', async ({ client }) => {
+    // given
+    const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
+
+    // when
+    const response = await client.delete(`${USERS_BASE_URL}/${admin.id}`).loginAs(manager)
+
+    // then
+    response.assertStatus(403)
+  })
+
+  test('rejects managers when deleting another manager', async ({ client }) => {
+    // given
+    const actingManager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const targetManager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+
+    // when
+    const response = await client.delete(`${USERS_BASE_URL}/${targetManager.id}`).loginAs(actingManager)
+
+    // then
+    response.assertStatus(403)
   })
 })
