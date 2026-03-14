@@ -6,8 +6,13 @@
 export const controllers = {
   http: {
     AccessToken: () => import('#controllers/http/access_token_controller'),
+    Clients: () => import('#controllers/http/clients_controller'),
+    Gateways: () => import('#controllers/http/gateways_controller'),
     NewAccount: () => import('#controllers/http/new_account_controller'),
+    Products: () => import('#controllers/http/products_controller'),
     Profile: () => import('#controllers/http/profile_controller'),
+    Purchases: () => import('#controllers/http/purchases_controller'),
+    Transactions: () => import('#controllers/http/transactions_controller'),
     Users: () => import('#controllers/http/users_controller'),
   },
 }

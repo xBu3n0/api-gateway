@@ -103,5 +103,43 @@ router
         .prefix('products')
         .as('products')
         .use(middleware.auth())
+    
+    router
+      .post('purchases', [controllers.http.Purchases, 'store'])
+      .as('purchases.store')
+      .use(middleware.auth())
+
+
+    router
+      .group(() => {
+        router
+          .get('/', [controllers.http.Clients, 'index'])
+          .use(middleware.client({ abilities: ['readAll'] }))
+
+        router
+          .get('/:id', [controllers.http.Clients, 'show'])
+          .use(middleware.client({ abilities: ['read'] }))
+      })
+      .prefix('clients')
+      .as('clients')
+      .use(middleware.auth())
+
+    router
+      .group(() => {
+        router
+          .get('/', [controllers.http.Transactions, 'index'])
+          .use(middleware.transaction({ abilities: ['readAll'] }))
+
+        router
+          .get('/:id', [controllers.http.Transactions, 'show'])
+          .use(middleware.transaction({ abilities: ['read'] }))
+
+        router
+          .post('/:id/refund', [controllers.http.Transactions, 'refund'])
+          .use(middleware.transaction({ abilities: ['refund'] }))
+      })
+      .prefix('transactions')
+      .as('transactions')
+      .use(middleware.auth())
   })
   .prefix('/api/v1')
