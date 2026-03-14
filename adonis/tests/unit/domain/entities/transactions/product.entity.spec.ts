@@ -1,0 +1,69 @@
+import { test } from '@japa/runner'
+import ProductEntity from '#domain/entities/shared/product.entity'
+import { ProductAmount } from '#domain/primitives/transactions/product_amount.primitive'
+import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
+
+test('builds a product entity from stored data', ({ assert }) => {
+  // given
+  const record = {
+    id: 1,
+    name: 'Online Course',
+    amount: 19990,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  // when
+  const entity = ProductEntity.fromRecord(record)
+
+  // then
+  assert.equal(entity.id.value, 1)
+  assert.equal(entity.name.value, record.name)
+  assert.equal(entity.amount.value, record.amount)
+})
+
+test('updates the product name while keeping the original immutable', ({ assert }) => {
+  // given
+  const entity = ProductEntity.fromRecord({
+    id: 2,
+    name: 'Basic Plan',
+    amount: 9900,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  })
+  const updatedName = ProductName.create('Premium Plan')
+
+  // when
+  const renamed = entity.changeName(updatedName)
+
+  // then
+  assert.equal(entity.name.value, 'Basic Plan')
+  assert.equal(entity.amount.value, 9900)
+  assert.equal(renamed.name.value, 'Premium Plan')
+  assert.equal(renamed.amount.value, entity.amount.value)
+  assert.equal(renamed.id.value, entity.id.value)
+  assert.notStrictEqual(entity, renamed)
+})
+
+test('updates the product amount while keeping the original immutable', ({ assert }) => {
+  // given
+  const entity = ProductEntity.fromRecord({
+    id: 2,
+    name: 'Basic Plan',
+    amount: 9900,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  })
+  const updatedAmount = ProductAmount.create(19900)
+
+  // when
+  const repriced = entity.changeAmount(updatedAmount)
+
+  // then
+  assert.equal(entity.name.value, 'Basic Plan')
+  assert.equal(entity.amount.value, 9900)
+  assert.equal(repriced.name.value, entity.name.value)
+  assert.equal(repriced.amount.value, 19900)
+  assert.equal(repriced.id.value, entity.id.value)
+  assert.notStrictEqual(entity, repriced)
+})
