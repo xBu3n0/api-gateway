@@ -53,6 +53,21 @@ interface NormalizedPurchaseItem {
   amount: ProductPrice
 }
 
+interface PurchaseContext {
+  userId: UserId
+  email: Email
+  clientName: ClientName
+  cardNumber: CardNumber
+  cvv: Cvv
+  items: NormalizedPurchaseItem[]
+  totalAmount: ProductPrice
+}
+
+interface GatewayAuthorizationResult {
+  gatewayId: GatewayId
+  externalTransactionId: ExternalTransactionId
+}
+
 @inject()
 export default class TransactionService {
   constructor(
@@ -64,65 +79,26 @@ export default class TransactionService {
   ) {}
 
   async purchase(input: PurchaseInput) {
-    const userId = UserId.create(input.userId)
-    const email = Email.create(input.email)
-    const clientName = ClientName.create(input.name)
-    const cardNumber = CardNumber.create(input.cardNumber)
-    const cvv = Cvv.create(input.cvv)
-    const items = await this.normalizeItems(input.items)
-
-    const totalAmount = this.calculateTotalAmount(items)
-    const client = await this.findOrCreateClient(userId, clientName, email)
-    const gateways = await this.gatewayRepository.listActiveByPriority()
-
-    if (gateways.length === 0) {
-      throw new NoActiveGatewayException('No active gateway is available to process the purchase.')
-    }
-
-    const draft = await this.transactionRepository.createDraftWithItems({
+    const context = await this.buildPurchaseContext(input)
+    const gateways = await this.listActiveGatewaysOrFail()
+    const authorization = await this.authorizePurchase(gateways, context)
+    const client = await this.findOrCreateClient(context.userId, context.clientName, context.email)
+    const authorized = await this.transactionRepository.createDraftWithItems({
       transaction: NewTransactionEntity.create(
         client.id,
-        gateways[0].id,
-        ExternalTransactionId.create(`pending-${crypto.randomUUID()}`),
-        totalAmount,
-        CardLastNumbers.create(cardNumber.lastFourDigits())
+        authorization.gatewayId,
+        authorization.externalTransactionId,
+        context.totalAmount,
+        CardLastNumbers.create(context.cardNumber.lastFourDigits()),
+        TransactionStatus.authorized()
       ),
-      items: items.map((item) => ({
+      items: context.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
       })),
     })
 
-    let lastGatewayId = gateways[0].id
-
-    for (const gateway of gateways) {
-      lastGatewayId = gateway.id
-
-      try {
-        const processor = this.gatewayProcessorRegistry.getFor(gateway)
-        const result = await processor.charge({
-          amount: Number(totalAmount.value),
-          name: clientName.value,
-          email: email.value,
-          cardNumber: cardNumber.value,
-          cvv: cvv.value,
-        })
-
-        const authorized = await this.transactionRepository.update(
-          draft.authorize(ExternalTransactionId.create(result.externalId), gateway.id)
-        )
-
-        return this.getById(authorized.id.value)
-      } catch (error) {
-        void error
-      }
-    }
-
-    await this.transactionRepository.update(draft.fail(lastGatewayId))
-
-    throw new TransactionPaymentFailedException(
-      'The purchase could not be authorized by any active gateway.'
-    )
+    return this.getById(authorized.id.value)
   }
 
   async listTransactions(filters: TransactionFiltersInput = {}) {
@@ -162,6 +138,7 @@ export default class TransactionService {
     }
 
     const processor = this.gatewayProcessorRegistry.getFor(gateway)
+    await processor.setup()
     await processor.refund(transaction.externalId.value)
     await this.transactionRepository.update(transaction.refund())
 
@@ -205,6 +182,25 @@ export default class TransactionService {
     return resolvedFilters
   }
 
+  private async buildPurchaseContext(input: PurchaseInput): Promise<PurchaseContext> {
+    const userId = UserId.create(input.userId)
+    const email = Email.create(input.email)
+    const clientName = ClientName.create(input.name)
+    const cardNumber = CardNumber.create(input.cardNumber)
+    const cvv = Cvv.create(input.cvv)
+    const items = await this.normalizeItems(input.items)
+
+    return {
+      userId,
+      email,
+      clientName,
+      cardNumber,
+      cvv,
+      items,
+      totalAmount: this.calculateTotalAmount(items),
+    }
+  }
+
   private calculateTotalAmount(items: NormalizedPurchaseItem[]) {
     let totalAmount = ProductPrice.create('0')
 
@@ -219,6 +215,46 @@ export default class TransactionService {
     return (
       (await this.clientRepository.findByEmail(email)) ??
       this.clientRepository.create(NewClientEntity.create(userId, clientName, email))
+    )
+  }
+
+  private async listActiveGatewaysOrFail() {
+    const gateways = await this.gatewayRepository.listActiveByPriority()
+
+    if (gateways.length === 0) {
+      throw new NoActiveGatewayException('No active gateway is available to process the purchase.')
+    }
+
+    return gateways
+  }
+
+  private async authorizePurchase(
+    gateways: Awaited<ReturnType<GatewayRepositoryInterface['listActiveByPriority']>>,
+    context: PurchaseContext
+  ): Promise<GatewayAuthorizationResult> {
+    for (const gateway of gateways) {
+      try {
+        const processor = this.gatewayProcessorRegistry.getFor(gateway)
+        await processor.setup()
+        const result = await processor.charge({
+          amount: Number(context.totalAmount.value),
+          name: context.clientName.value,
+          email: context.email.value,
+          cardNumber: context.cardNumber.value,
+          cvv: context.cvv.value,
+        })
+
+        return {
+          gatewayId: gateway.id,
+          externalTransactionId: ExternalTransactionId.create(result.externalId),
+        }
+      } catch {
+        continue
+      }
+    }
+
+    throw new TransactionPaymentFailedException(
+      'The purchase could not be authorized by any active gateway.'
     )
   }
 }

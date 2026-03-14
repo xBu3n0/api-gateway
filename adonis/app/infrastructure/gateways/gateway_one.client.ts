@@ -28,6 +28,10 @@ export default class GatewayOneClient extends BaseGatewayClient implements Payme
     return ['gateway1', normalizeGatewayName(gatewayConfig.one.name)].includes(normalizedName)
   }
 
+  async setup() {
+    await this.getToken()
+  }
+
   async charge(input: ChargeGatewayInput): Promise<GatewayChargeResult> {
     const payload = await this.unwrap(
       this.authenticatedClient.post('/transactions', {
@@ -58,7 +62,10 @@ export default class GatewayOneClient extends BaseGatewayClient implements Payme
     }
 
     const payload = await this.unwrap(
-      this.publicClient.post(gatewayConfig.one.loginPath),
+      this.publicClient.post(gatewayConfig.one.loginPath, {
+        email: gatewayConfig.one.loginEmail,
+        token: gatewayConfig.one.loginToken,
+      }),
       'Gateway 1 authentication'
     )
 

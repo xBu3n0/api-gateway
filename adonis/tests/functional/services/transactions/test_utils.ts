@@ -2,6 +2,7 @@ import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import type { ChargeGatewayInput, GatewayChargeResult } from '#application/gateways/payment_gateway'
 import type PaymentGateway from '#application/gateways/payment_gateway'
+import GatewayProcessorNotConfiguredException from '#domain/exceptions/transactions/gateway_processor_not_configured.exception'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
 import TransactionService from '#services/transactions/transaction.service'
 import type GatewayEntity from '#domain/entities/shared/gateway.entity'
@@ -35,7 +36,7 @@ export async function cleanupTransactionsDatabase() {
   await db.from('users').delete()
 }
 
-export async function makeTransactionService(processors: PaymentGateway[]) {
+export async function makeTransactionService(processors: FakeGatewayProcessor[]) {
   const transactionRepository = await app.container.make(TransactionRepositoryInterface)
   const productRepository = await app.container.make(ProductRepositoryInterface)
   const clientRepository = await app.container.make(ClientRepositoryInterface)
@@ -46,7 +47,7 @@ export async function makeTransactionService(processors: PaymentGateway[]) {
     productRepository,
     clientRepository,
     gatewayRepository,
-    new GatewayProcessorRegistry(processors)
+    new FakeGatewayProcessorRegistry(processors)
   )
 }
 
@@ -55,13 +56,15 @@ export class FakeGatewayProcessor implements PaymentGateway {
   readonly refundCalls: string[] = []
 
   constructor(
-    private readonly gatewayName: string,
+    readonly gatewayName: string,
     private readonly result: GatewayChargeResult | Error
   ) {}
 
   supports(gateway: GatewayEntity) {
     return gateway.name.value === this.gatewayName
   }
+
+  async setup() {}
 
   async charge(input: ChargeGatewayInput) {
     this.chargeCalls.push(input)
@@ -75,5 +78,28 @@ export class FakeGatewayProcessor implements PaymentGateway {
 
   async refund(externalId: string) {
     this.refundCalls.push(externalId)
+  }
+}
+
+class FakeGatewayProcessorRegistry extends GatewayProcessorRegistry {
+  private readonly processorsByGatewayName: Map<string, PaymentGateway>
+
+  constructor(processors: FakeGatewayProcessor[]) {
+    super([])
+    this.processorsByGatewayName = new Map(
+      processors.map((processor) => [processor.gatewayName, processor])
+    )
+  }
+
+  getFor(gateway: GatewayEntity): PaymentGateway {
+    const processor = this.processorsByGatewayName.get(gateway.name.value)
+
+    if (!processor) {
+      throw new GatewayProcessorNotConfiguredException(
+        `No payment gateway processor was configured for '${gateway.name.value}'.`
+      )
+    }
+
+    return processor
   }
 }

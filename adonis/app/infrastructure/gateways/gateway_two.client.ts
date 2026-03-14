@@ -21,6 +21,8 @@ export default class GatewayTwoClient extends BaseGatewayClient implements Payme
     return ['gateway2', normalizeGatewayName(gatewayConfig.two.name)].includes(normalizedName)
   }
 
+  async setup() {}
+
   async charge(input: ChargeGatewayInput): Promise<GatewayChargeResult> {
     const payload = await this.unwrap(
       this.authenticatedClient.post('/transacoes', {

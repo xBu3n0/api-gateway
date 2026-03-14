@@ -7,6 +7,8 @@ const gatewayConfig = {
     name: process.env.GATEWAY_ONE_NAME || 'Gateway 1',
     baseUrl: process.env.GATEWAY_ONE_BASE_URL || 'http://localhost:3001',
     loginPath: '/login',
+    loginEmail: process.env.GATEWAY_ONE_LOGIN_EMAIL || 'dev@betalent.tech',
+    loginToken: process.env.GATEWAY_ONE_LOGIN_TOKEN || 'FEC9BB078BF338F464F96B48089EB498',
   },
   two: {
     name: process.env.GATEWAY_TWO_NAME || 'Gateway 2',
