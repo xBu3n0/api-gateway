@@ -4,7 +4,9 @@ import { UserFactory } from '#database/factories/user_factory'
 
 export const ClientFactory = factory
   .define(Client, async ({ faker }) => {
-    const user = await UserFactory.create()
+    const user = await UserFactory.make()
+    user.skipClientSync = true
+    await user.save()
 
     return {
       name: faker.person.fullName().slice(0, 255),

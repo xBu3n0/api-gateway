@@ -10,7 +10,7 @@ import { UserFactory } from '#database/factories/user_factory'
 import { GatewayFactory } from '#database/factories/gateway_factory'
 import { ProductFactory } from '#database/factories/product_factory'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
-import TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
+import type TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
 import Client from '#models/transactions/client'
 import Transaction from '#models/transactions/transaction'
 
@@ -18,7 +18,9 @@ const PURCHASES_BASE_URL = '/api/v1/purchases'
 
 type PurchaseResponseBody = {
   data: Omit<InferData<TransactionDetailsTransformer>, 'items'> & {
-    items: Array<InferData<TransactionDetailsTransformer>['items'][number] & { parcial_price: number }>
+    items: Array<
+      InferData<TransactionDetailsTransformer>['items'][number] & { parcial_price: number }
+    >
     total_price: number
   }
 }
@@ -100,7 +102,7 @@ test.group('PurchasesController | functional', (group) => {
 
   group.each.timeout(10000)
 
-  test('creates a purchase and returns the serialized transaction details', async ({
+  test('creates a purchase, reuses the user payment client, and returns the serialized transaction details', async ({
     client,
     assert,
   }) => {
@@ -117,20 +119,28 @@ test.group('PurchasesController | functional', (group) => {
     }).create()
 
     // when
-    const response = await client.post(PURCHASES_BASE_URL).loginAs(user).json({
-      name: 'Jane Doe',
-      email: 'jane@betalent.tech',
-      cardNumber: '5569000000006063',
-      cvv: '010',
-      items: [{ productId: product.id, quantity: 2, price: '10.00' }],
-    })
+    const response = await client
+      .post(PURCHASES_BASE_URL)
+      .loginAs(user)
+      .json({
+        name: 'Jane Doe',
+        email: 'jane@betalent.tech',
+        cardNumber: '5569000000006063',
+        cvv: '010',
+        items: [{ productId: product.id, quantity: 2, price: '10.00' }],
+      })
 
     // then
     response.assertStatus(200)
 
-    const createdClient = await Client.findByOrFail('email', 'jane@betalent.tech')
-    const createdTransaction = await Transaction.findByOrFail('external_id', 'gateway-1-test-transaction')
+    const createdClient = await Client.findByOrFail('userId', user.id)
+    const createdTransaction = await Transaction.findByOrFail(
+      'external_id',
+      'gateway-1-test-transaction'
+    )
     const body = response.body() as PurchaseResponseBody
+    const persistedClients = await Client.query().where('user_id', user.id)
+    const paymentClientFromPurchasePayload = await Client.findBy('email', 'jane@betalent.tech')
 
     assert.deepEqual(body, {
       data: {
@@ -142,8 +152,8 @@ test.group('PurchasesController | functional', (group) => {
         client: {
           id: createdClient.id,
           userId: user.id,
-          name: 'Jane Doe',
-          email: 'jane@betalent.tech',
+          name: user.email,
+          email: user.email,
         },
         gateway: {
           id: gateway.id,
@@ -178,6 +188,8 @@ test.group('PurchasesController | functional', (group) => {
     assert.equal(gatewayTwoProcessor.setupCalls, 0)
     assert.deepEqual(gatewayTwoProcessor.chargeCalls, [])
     assert.equal(createdClient.userId, user.id)
+    assert.lengthOf(persistedClients, 1)
+    assert.isNull(paymentClientFromPurchasePayload)
     assert.equal(createdTransaction.gatewayId, gateway.id)
     assert.equal(createdTransaction.status, TransactionStatusEnum.AUTHORIZED)
   })

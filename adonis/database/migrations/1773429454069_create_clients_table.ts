@@ -11,6 +11,7 @@ export default class extends BaseSchema {
         .integer('user_id')
         .unsigned()
         .notNullable()
+        .unique()
         .references('id')
         .inTable('users')
         .onDelete('RESTRICT')

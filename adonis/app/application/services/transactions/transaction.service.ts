@@ -5,8 +5,8 @@ import GatewayRepositoryInterface from '#repositories/transactions/gateway.repos
 import ProductRepositoryInterface from '#repositories/transactions/product.repository'
 import TransactionRepositoryInterface from '#repositories/transactions/transaction.repository'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
-import NewClientEntity from '#domain/entities/transactions/new_client.entity'
 import NewTransactionEntity from '#domain/entities/transactions/new_transaction.entity'
+import ClientNotFoundException from '#domain/exceptions/transactions/client_not_found.exception'
 import TransactionRefundNotAllowedException from '#domain/exceptions/transactions/transaction_refund_not_allowed.exception'
 import NoActiveGatewayException from '#domain/exceptions/transactions/no_active_gateway.exception'
 import ProductNotFoundException from '#domain/exceptions/transactions/product_not_found.exception'
@@ -82,7 +82,7 @@ export default class TransactionService {
     const context = await this.buildPurchaseContext(input)
     const gateways = await this.listActiveGatewaysOrFail()
     const authorization = await this.authorizePurchase(gateways, context)
-    const client = await this.findOrCreateClient(context.userId, context.clientName, context.email)
+    const client = await this.findClientByUserId(context.userId)
     const authorized = await this.transactionRepository.createDraftWithItems({
       transaction: NewTransactionEntity.create(
         client.id,
@@ -211,11 +211,14 @@ export default class TransactionService {
     return totalAmount
   }
 
-  private async findOrCreateClient(userId: UserId, clientName: ClientName, email: Email) {
-    return (
-      (await this.clientRepository.findByEmail(email)) ??
-      this.clientRepository.create(NewClientEntity.create(userId, clientName, email))
-    )
+  private async findClientByUserId(userId: UserId) {
+    const client = await this.clientRepository.findByUserId(userId)
+
+    if (!client) {
+      throw new ClientNotFoundException(`Client for user '${userId.value}' was not found.`)
+    }
+
+    return client
   }
 
   private async listActiveGatewaysOrFail() {

@@ -2,11 +2,22 @@ import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import User from '#models/auth/user'
+import Client from '#models/transactions/client'
 import { UserFactory } from '#database/factories/user_factory'
 import { RoleEnum } from '#enums/auth/role.enum'
 
 const USERS_BASE_URL = '/api/v1/users'
 const MISSING_USER_ID = 999999
+type CreatedUserResponseBody = {
+  data: {
+    user: {
+      id: number
+      email: string
+      role: RoleEnum
+    }
+    token: string
+  }
+}
 
 async function runAceCommand(commandName: string, args: string[]) {
   const ace = await app.container.make('ace')
@@ -27,6 +38,7 @@ async function runAceCommand(commandName: string, args: string[]) {
 
 async function cleanupUsers() {
   await db.from('auth_access_tokens').delete()
+  await db.from('clients').delete()
   await db.from('users').delete()
 }
 
@@ -81,7 +93,9 @@ test.group('UsersController | functional', (group) => {
 
     // then
     response.assertStatus(200)
-    const { data: user } = response.body()
+    const {
+      data: { user },
+    } = response.body() as CreatedUserResponseBody
     response.assertBodyContains({
       data: {
         user: {
@@ -98,6 +112,10 @@ test.group('UsersController | functional', (group) => {
       },
     })
     assert.notProperty(user, 'password')
+
+    const createdClient = await Client.findByOrFail('email', 'created-user@example.com')
+    assert.equal(createdClient.userId, user.id)
+    assert.equal(createdClient.name, 'created-user@example.com')
   })
 
   test('creates a user for managers', async ({ client, assert }) => {
@@ -114,7 +132,9 @@ test.group('UsersController | functional', (group) => {
 
     // then
     response.assertStatus(200)
-    const { data: user } = response.body()
+    const {
+      data: { user },
+    } = response.body() as CreatedUserResponseBody
     response.assertBodyContains({
       data: {
         user: {
@@ -124,6 +144,9 @@ test.group('UsersController | functional', (group) => {
       },
     })
     assert.notProperty(user, 'password')
+
+    const createdClient = await Client.findByOrFail('email', 'created-by-manager@example.com')
+    assert.equal(createdClient.userId, user.id)
   })
 
   test('rejects managers when creating an admin user', async ({ client }) => {
@@ -233,8 +256,11 @@ test.group('UsersController | functional', (group) => {
     })
 
     const updatedUser = await User.findOrFail(user.id)
+    const syncedClient = await Client.findByOrFail('userId', user.id)
     assert.equal(updatedUser.email, 'updated-user@example.com')
     assert.equal(updatedUser.role, RoleEnum.MANAGER)
+    assert.equal(syncedClient.email, 'updated-user@example.com')
+    assert.equal(syncedClient.name, 'updated-user@example.com')
   })
 
   test('updates a non-admin user for managers', async ({ client, assert }) => {
@@ -259,8 +285,11 @@ test.group('UsersController | functional', (group) => {
     })
 
     const updatedUser = await User.findOrFail(user.id)
+    const syncedClient = await Client.findByOrFail('userId', user.id)
     assert.equal(updatedUser.email, 'updated-by-manager@example.com')
     assert.equal(updatedUser.role, RoleEnum.FINANCE)
+    assert.equal(syncedClient.email, 'updated-by-manager@example.com')
+    assert.equal(syncedClient.name, 'updated-by-manager@example.com')
   })
 
   test('rejects managers when updating an admin', async ({ client }) => {
@@ -322,6 +351,7 @@ test.group('UsersController | functional', (group) => {
       message: 'User removed successfully',
     })
     assert.isNull(await User.find(user.id))
+    assert.isNull(await Client.findBy('userId', user.id))
   })
 
   test('deletes a non-admin user for managers', async ({ client, assert }) => {
@@ -338,6 +368,7 @@ test.group('UsersController | functional', (group) => {
       message: 'User removed successfully',
     })
     assert.isNull(await User.find(user.id))
+    assert.isNull(await Client.findBy('userId', user.id))
   })
 
   test('rejects managers when deleting an admin', async ({ client }) => {

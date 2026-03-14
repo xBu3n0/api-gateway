@@ -29,6 +29,7 @@ async function runAceCommand(commandName: string, args: string[]) {
 async function cleanupGateways() {
   await db.from('gateways').delete()
   await db.from('auth_access_tokens').delete()
+  await db.from('clients').delete()
   await db.from('users').delete()
 }
 

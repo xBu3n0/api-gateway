@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import Client from '#models/transactions/client'
 import Transaction from '#models/transactions/transaction'
+import ClientNotFoundException from '#domain/exceptions/transactions/client_not_found.exception'
 import ProductNotFoundException from '#domain/exceptions/transactions/product_not_found.exception'
 import TransactionPaymentFailedException from '#domain/exceptions/transactions/transaction_payment_failed.exception'
 import TransactionNotFoundException from '#domain/exceptions/transactions/transaction_not_found.exception'
@@ -59,10 +60,49 @@ test.group('TransactionService integration (real database)', (group) => {
     assert.equal(purchase.transaction.externalId.value, 'gw-1-tx')
     assert.equal(purchase.gateway.id.value, gateway.id)
 
-    const persistedClient = await Client.findByOrFail('email', 'jane@betalent.tech')
+    const persistedClient = await Client.findByOrFail('userId', user.id)
     const persistedTransaction = await Transaction.findOrFail(purchase.transaction.id.value)
+    const persistedClients = await Client.query().where('user_id', user.id)
     assert.equal(persistedClient.userId, user.id)
+    assert.lengthOf(persistedClients, 1)
     assert.equal(persistedTransaction.gatewayId, gateway.id)
+  })
+
+  test('uses the existing user payment client instead of creating one from purchase payload data', async ({
+    assert,
+  }) => {
+    // given
+    const user = await UserFactory.create()
+    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    await GatewayFactory.merge({
+      name: 'Gateway 1',
+      priority: 1,
+      isActive: true,
+    }).create()
+    const originalClient = await Client.findByOrFail('userId', user.id)
+    const service = await makeTransactionService([
+      new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-existing-client' }),
+    ])
+
+    // when
+    const purchase = await service.purchase({
+      userId: user.id,
+      name: 'Different Name',
+      email: 'different@example.com',
+      cardNumber: '5569000000006063',
+      cvv: '010',
+      items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+    })
+
+    // then
+    const persistedClients = await Client.query().where('user_id', user.id)
+    const paymentClientFromPurchasePayload = await Client.findBy('email', 'different@example.com')
+
+    assert.equal(purchase.client.id.value, originalClient.id)
+    assert.equal(purchase.client.email.value, user.email)
+    assert.equal(purchase.client.name.value, user.email)
+    assert.lengthOf(persistedClients, 1)
+    assert.isNull(paymentClientFromPurchasePayload)
   })
 
   test('falls back to the next active gateway when a gateway charge fails', async ({ assert }) => {
@@ -189,10 +229,44 @@ test.group('TransactionService integration (real database)', (group) => {
     assert.equal(secondGateway.chargeCalls.length, 1)
 
     const persistedTransaction = await Transaction.all()
-    const persistedClient = await Client.findBy('email', 'nogateway@betalent.tech')
+    const persistedClient = await Client.findBy('userId', user.id)
 
     assert.lengthOf(persistedTransaction, 0)
-    assert.isNull(persistedClient)
+    assert.isNotNull(persistedClient)
+  })
+
+  test('does not create a client during purchase when the user client is missing', async ({
+    assert,
+  }) => {
+    // given
+    const user = await UserFactory.create()
+    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    await GatewayFactory.merge({
+      name: 'Gateway 1',
+      priority: 1,
+      isActive: true,
+    }).create()
+    await Client.query().where('user_id', user.id).delete()
+    const processor = new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-missing-client' })
+    const service = await makeTransactionService([processor])
+
+    // when
+    const purchaseWithoutClient = () =>
+      service.purchase({
+        userId: user.id,
+        name: 'Missing Client',
+        email: 'missing-client@example.com',
+        cardNumber: '5569000000006063',
+        cvv: '010',
+        items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+      })
+
+    // then
+    await assert.rejects(purchaseWithoutClient, ClientNotFoundException)
+    assert.equal(processor.chargeCalls.length, 1)
+    assert.isNull(await Client.findBy('userId', user.id))
+    assert.isNull(await Client.findBy('email', 'missing-client@example.com'))
+    assert.lengthOf(await Transaction.all(), 0)
   })
 
   test('returns not found when the transaction id does not exist', async ({ assert }) => {
