@@ -27,7 +27,6 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
         product: {
           id: item.product.id.value,
           name: item.product.name.value,
-          quantity: item.product.quantity.value,
         },
         quantity: item.quantity.value,
       })),

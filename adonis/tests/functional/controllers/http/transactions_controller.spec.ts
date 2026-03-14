@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
+import type { InferData } from '@adonisjs/http-transformers/types'
 import db from '@adonisjs/lucid/services/db'
 import type { ChargeGatewayInput, GatewayChargeResult } from '#application/gateways/payment_gateway'
 import type PaymentGateway from '#application/gateways/payment_gateway'
@@ -13,25 +14,41 @@ import { ProductFactory } from '#database/factories/product_factory'
 import { TransactionFactory } from '#database/factories/transaction_factory'
 import { TransactionProductFactory } from '#database/factories/transaction_product_factory'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
+import Transaction from '#models/transactions/transaction'
+import TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
 
 const TRANSACTIONS_BASE_URL = '/api/v1/transactions'
 
-class NoopGatewayProcessor implements PaymentGateway {
+type TransactionDetailsResponseBody = {
+  data: InferData<TransactionDetailsTransformer>
+}
+
+class SpyGatewayProcessor implements PaymentGateway {
+  readonly chargeCalls: ChargeGatewayInput[] = []
+  readonly refundCalls: string[] = []
+  setupCalls = 0
+
   constructor(private readonly gatewayName: string) {}
 
   supports(gateway: GatewayEntity) {
     return gateway.name.value === this.gatewayName
   }
 
-  async setup() {}
+  async setup() {
+    this.setupCalls += 1
+  }
 
-  async charge(_input: ChargeGatewayInput): Promise<GatewayChargeResult> {
+  async charge(input: ChargeGatewayInput): Promise<GatewayChargeResult> {
+    this.chargeCalls.push(input)
+
     return {
       externalId: `${this.gatewayName.toLowerCase().replaceAll(' ', '-')}-test-transaction`,
     }
   }
 
-  async refund(_externalId: string) {}
+  async refund(externalId: string) {
+    this.refundCalls.push(externalId)
+  }
 }
 
 async function runAceCommand(commandName: string, args: string[]) {
@@ -62,13 +79,14 @@ async function cleanupTransactions() {
 }
 
 test.group('TransactionsController | functional', (group) => {
-  group.setup(async () => {
-    const fakeGatewayRegistry = new GatewayProcessorRegistry([
-      new NoopGatewayProcessor('Gateway 1'),
-      new NoopGatewayProcessor('Gateway 2'),
-    ])
+  let gatewayOneProcessor: SpyGatewayProcessor
+  let gatewayTwoProcessor: SpyGatewayProcessor
 
-    app.container.swap(GatewayProcessorRegistry, () => fakeGatewayRegistry)
+  group.setup(async () => {
+    app.container.swap(
+      GatewayProcessorRegistry,
+      () => new GatewayProcessorRegistry([gatewayOneProcessor, gatewayTwoProcessor])
+    )
     await runAceCommand('migration:run', ['--compact-output', '--no-schema-generate'])
 
     return async () => {
@@ -78,6 +96,8 @@ test.group('TransactionsController | functional', (group) => {
   })
 
   group.each.setup(async () => {
+    gatewayOneProcessor = new SpyGatewayProcessor('Gateway 1')
+    gatewayTwoProcessor = new SpyGatewayProcessor('Gateway 2')
     await cleanupTransactions()
   })
 
@@ -110,7 +130,7 @@ test.group('TransactionsController | functional', (group) => {
     })
   })
 
-  test('shows a transaction with all related data', async ({ client }) => {
+  test('shows a transaction with all related data', async ({ client, assert }) => {
     // given
     const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
     const clientRecord = await ClientFactory.create()
@@ -143,7 +163,7 @@ test.group('TransactionsController | functional', (group) => {
 
     // then
     response.assertStatus(200)
-    response.assertBody({
+    assert.deepEqual(response.body() as TransactionDetailsResponseBody, {
       data: {
         id: transaction.id,
         externalId: 'tx-show-1',
@@ -167,7 +187,6 @@ test.group('TransactionsController | functional', (group) => {
             product: {
               id: firstProduct.id,
               name: firstProduct.name,
-              quantity: firstProduct.quantity,
             },
             quantity: 1,
           },
@@ -175,12 +194,100 @@ test.group('TransactionsController | functional', (group) => {
             product: {
               id: secondProduct.id,
               name: secondProduct.name,
-              quantity: secondProduct.quantity,
             },
             quantity: 2,
           },
         ],
       },
     })
+  })
+
+  test('refunds an authorized transaction using the stored gateway processor', async ({
+    client,
+    assert,
+  }) => {
+    // given
+    const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
+    const clientRecord = await ClientFactory.create()
+    const gateway = await GatewayFactory.merge({
+      name: 'Gateway 2',
+      isActive: true,
+      priority: 1,
+    }).create()
+    const transaction = await TransactionFactory.merge({
+      clientId: clientRecord.id,
+      gatewayId: gateway.id,
+      externalId: 'gw-2-refund-1',
+      status: TransactionStatusEnum.AUTHORIZED,
+      amount: 2000,
+      cardLastNumbers: '6063',
+    }).create()
+
+    // when
+    const response = await client
+      .post(`${TRANSACTIONS_BASE_URL}/${transaction.id}/refund`)
+      .loginAs(finance)
+
+    // then
+    response.assertStatus(200)
+    assert.deepEqual(response.body() as TransactionDetailsResponseBody, {
+      data: {
+        id: transaction.id,
+        externalId: 'gw-2-refund-1',
+        status: TransactionStatusEnum.REFUNDED,
+        amount: 20,
+        cardLastNumbers: '6063',
+        client: {
+          id: clientRecord.id,
+          userId: clientRecord.userId,
+          name: clientRecord.name,
+          email: clientRecord.email,
+        },
+        gateway: {
+          id: gateway.id,
+          name: gateway.name,
+          isActive: gateway.isActive,
+          priority: gateway.priority,
+        },
+        items: [],
+      },
+    })
+
+    assert.equal(gatewayOneProcessor.setupCalls, 0)
+    assert.deepEqual(gatewayOneProcessor.refundCalls, [])
+    assert.equal(gatewayTwoProcessor.setupCalls, 1)
+    assert.deepEqual(gatewayTwoProcessor.refundCalls, ['gw-2-refund-1'])
+
+    const refundedTransaction = await Transaction.findOrFail(transaction.id)
+    assert.equal(refundedTransaction.status, TransactionStatusEnum.REFUNDED)
+  })
+
+  test('does not call the gateway when the transaction cannot be refunded', async ({
+    client,
+    assert,
+  }) => {
+    // given
+    const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
+    const gateway = await GatewayFactory.merge({
+      name: 'Gateway 1',
+      isActive: true,
+      priority: 1,
+    }).create()
+    const transaction = await TransactionFactory.merge({
+      gatewayId: gateway.id,
+      status: TransactionStatusEnum.REFUNDED,
+    }).create()
+
+    // when
+    const response = await client
+      .post(`${TRANSACTIONS_BASE_URL}/${transaction.id}/refund`)
+      .loginAs(finance)
+
+    // then
+    response.assertStatus(422)
+    assert.equal(gatewayOneProcessor.setupCalls, 0)
+    assert.deepEqual(gatewayOneProcessor.refundCalls, [])
+    assert.equal(gatewayTwoProcessor.setupCalls, 0)
+    assert.deepEqual(gatewayTwoProcessor.refundCalls, [])
   })
 })

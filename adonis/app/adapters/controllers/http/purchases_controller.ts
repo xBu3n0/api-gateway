@@ -1,18 +1,12 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import type { InferData } from '@adonisjs/http-transformers/types'
 import TransactionService from '#services/transactions/transaction.service'
 import type { PurchaseInput } from '#services/transactions/transaction.service'
 import TransactionDetailsTransformer from '#transformers/transaction_details_transformer'
 import { createPurchaseValidator } from '#validators/purchase'
 
-type SerializedPurchaseItem = {
-  product: {
-    id: number
-    name: string
-    quantity: number
-  }
-  quantity: number
-}
+type SerializedPurchaseItem = InferData<TransactionDetailsTransformer>['items'][number]
 
 @inject()
 export default class PurchasesController {
