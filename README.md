@@ -407,6 +407,12 @@ Também senti falta de uma ferramenta que garantisse a entrada no controller já
 
 Outra dificuldade foi a interpretação correta da aplicação e do que de fato era esperado pelo desafio. Como não havia conversa direta com stakeholder para validar entendimento, foi necessário reinterpretar alguns pontos ao longo do desenvolvimento para ajustar a solução à proposta esperada.
 
+## Pendências
+
+Todos os requisitos do desafio foram implementados e estão em funcionamento.
+
+A única decisão que exigiu interpretação foi a matriz de permissões para rotas além de usuários, produtos e reembolso, já que o enunciado não especificava acesso explícito para todos os perfis nesses casos. A decisão tomada está documentada na seção de regras de acesso por perfil.
+
 ## Testes
 
 A construção dos testes seguiu TDD como abordagem de desenvolvimento, usando os cenários como apoio para modelar as regras de negócio e validar o comportamento esperado a cada etapa.
@@ -415,7 +421,7 @@ A estratégia foi inspirada no livro `Unit Testing Principles, Practices, and Pa
 
 Na prática, isso significa que os testes buscaram exercitar middlewares, classes reais e banco de dados de forma integrada, preservando o máximo possível do comportamento real do sistema. O mock foi mantido apenas nos gateways externos, por serem dependências fora do meu controle e com respostas não determinísticas.
 
-No estado atual do projeto, a suíte possui 228 testes automatizados cobrindo principalmente:
+No estado atual do projeto, a suíte possui 229 testes automatizados cobrindo principalmente:
 
 - primitives, entidades e regras centrais de domínio
 - autenticação e controle de acesso por perfil
