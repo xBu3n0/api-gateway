@@ -44,7 +44,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class ClientSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'id', 'name', 'updatedAt', 'userId'] as const
+  static $columns = ['createdAt', 'email', 'id', 'name', 'updatedAt'] as const
   $columns = ClientSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -56,8 +56,6 @@ export class ClientSchema extends BaseModel {
   declare name: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-  @column()
-  declare userId: number
 }
 
 export class GatewaySchema extends BaseModel {

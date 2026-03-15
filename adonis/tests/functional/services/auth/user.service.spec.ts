@@ -1,12 +1,9 @@
 import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import UserService from '#services/auth/user.service'
-import ClientService from '#services/transactions/client.service'
 import { RoleEnum } from '#enums/auth/role.enum'
 import UserNotFoundException from '#domain/exceptions/auth/user_not_found.exception'
 import User from '#models/auth/user'
-import Client from '#models/transactions/client'
-import UserEntity from '#domain/entities/shared/user.entity'
 import { UserFactory } from '#database/factories/user_factory'
 import InvalidCredentialsException from '#domain/exceptions/auth/invalid_credentials.exception'
 import hash from '@adonisjs/core/services/hash'
@@ -15,13 +12,6 @@ const MISSING_USER_ID = 999999
 
 async function makeService() {
   return app.container.make(UserService)
-}
-
-async function syncClientForUser(user: User) {
-  const clientService = await app.container.make(ClientService)
-  await clientService.ensureForUser(UserEntity.fromRecord(user.toRecord()))
-
-  return user
 }
 
 async function makeUserInput(role?: RoleEnum) {
@@ -65,9 +55,7 @@ test.group('UserService integration (real database)', (group) => {
 
   group.each.timeout(10000)
 
-  test('registers a new user, returns an access token, and creates one synced client', async ({
-    assert,
-  }) => {
+  test('registers a new user and returns an access token', async ({ assert }) => {
     // given
     const service = await makeService()
     const input = await makeUserInput(RoleEnum.USER)
@@ -80,12 +68,6 @@ test.group('UserService integration (real database)', (group) => {
     assert.equal(output.user.role.value, input.role)
     assert.isString(output.token)
     assert.isAbove(output.token.length, 0)
-
-    const createdClient = await Client.findByOrFail('userId', output.user.id.value)
-    const createdClients = await Client.query().where('user_id', output.user.id.value)
-    assert.equal(createdClient.email, input.email)
-    assert.equal(createdClient.name, input.email)
-    assert.lengthOf(createdClients, 1)
   })
 
   test('logs in with valid credentials', async ({ assert }) => {
@@ -128,17 +110,12 @@ test.group('UserService integration (real database)', (group) => {
     await assert.rejects(loginWithWrongPassword, InvalidCredentialsException)
   })
 
-  test('updates the email and role of an existing user without creating another client', async ({
-    assert,
-  }) => {
+  test('updates the email and role of an existing user', async ({ assert }) => {
     // given
     const service = await makeService()
-    const created = await syncClientForUser(
-      await UserFactory.merge({
-        role: RoleEnum.USER,
-      }).create()
-    )
-    const originalClient = await Client.findByOrFail('userId', created.id)
+    const created = await UserFactory.merge({
+      role: RoleEnum.USER,
+    }).create()
 
     const newUser = await makeUserInput()
     const newEmail = newUser.email
@@ -153,13 +130,6 @@ test.group('UserService integration (real database)', (group) => {
     assert.equal(updated.id.value, created.id)
     assert.equal(updated.email.value, newEmail)
     assert.equal(updated.role.value, RoleEnum.ADMIN)
-
-    const syncedClient = await Client.findByOrFail('userId', created.id)
-    const syncedClients = await Client.query().where('user_id', created.id)
-    assert.equal(syncedClient.email, newEmail)
-    assert.equal(syncedClient.name, newEmail)
-    assert.equal(syncedClient.id, originalClient.id)
-    assert.lengthOf(syncedClients, 1)
   })
 
   test('returns not found when trying to update a missing user', async ({ assert }) => {
@@ -236,7 +206,6 @@ test.group('UserService integration (real database)', (group) => {
     // then
     const deletedUser = await service.findByEmail(user.email)
     assert.isNull(deletedUser)
-    assert.isNull(await Client.findBy('userId', user.id))
   })
 
   test('stores access tokens in the database', async ({ assert }) => {

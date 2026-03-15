@@ -6,7 +6,7 @@ import ProductRepositoryInterface from '#repositories/transactions/product.repos
 import TransactionRepositoryInterface from '#repositories/transactions/transaction.repository'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
 import NewTransactionEntity from '#domain/entities/transactions/new_transaction.entity'
-import ClientNotFoundException from '#domain/exceptions/transactions/client_not_found.exception'
+import NewClientEntity from '#domain/entities/transactions/new_client.entity'
 import TransactionRefundNotAllowedException from '#domain/exceptions/transactions/transaction_refund_not_allowed.exception'
 import NoActiveGatewayException from '#domain/exceptions/transactions/no_active_gateway.exception'
 import ProductNotFoundException from '#domain/exceptions/transactions/product_not_found.exception'
@@ -14,7 +14,6 @@ import TransactionNotFoundException from '#domain/exceptions/transactions/transa
 import TransactionPaymentFailedException from '#domain/exceptions/transactions/transaction_payment_failed.exception'
 import { TransactionStatusEnum } from '#domain/enums/transactions/transaction_status.enum'
 import { Email } from '#domain/primitives/shared/email.primitive'
-import { UserId } from '#domain/primitives/auth/user_id.primitive'
 import { CardLastNumbers } from '#domain/primitives/transactions/card_last_numbers.primitive'
 import { CardNumber } from '#domain/primitives/transactions/card_number.primitive'
 import { ClientName } from '#domain/primitives/transactions/client_name.primitive'
@@ -29,7 +28,6 @@ import { TransactionId } from '#domain/primitives/transactions/transaction_id.pr
 import { TransactionStatus } from '#domain/primitives/transactions/transaction_status.primitive'
 
 export interface PurchaseInput {
-  userId: number
   name: string
   email: string
   cardNumber: string
@@ -53,7 +51,6 @@ interface NormalizedPurchaseItem {
 }
 
 interface PurchaseContext {
-  userId: UserId
   email: Email
   clientName: ClientName
   cardNumber: CardNumber
@@ -81,7 +78,7 @@ export default class TransactionService {
     const context = await this.buildPurchaseContext(input)
     const gateways = await this.listActiveGatewaysOrFail()
     const authorization = await this.authorizePurchase(gateways, context)
-    const client = await this.findClientByUserId(context.userId)
+    const client = await this.findOrCreateClient(context.clientName, context.email)
     const authorized = await this.transactionRepository.createDraftWithItems({
       transaction: NewTransactionEntity.create(
         client.id,
@@ -186,7 +183,6 @@ export default class TransactionService {
   }
 
   private async buildPurchaseContext(input: PurchaseInput): Promise<PurchaseContext> {
-    const userId = UserId.create(input.userId)
     const email = Email.create(input.email)
     const clientName = ClientName.create(input.name)
     const cardNumber = CardNumber.create(input.cardNumber)
@@ -194,7 +190,6 @@ export default class TransactionService {
     const items = await this.normalizeItems(input.items)
 
     return {
-      userId,
       email,
       clientName,
       cardNumber,
@@ -214,14 +209,13 @@ export default class TransactionService {
     return totalAmount
   }
 
-  private async findClientByUserId(userId: UserId) {
-    const client = await this.clientRepository.findByUserId(userId)
-
-    if (!client) {
-      throw new ClientNotFoundException(`Client for user '${userId.value}' was not found.`)
+  private async findOrCreateClient(name: ClientName, email: Email) {
+    const existingClient = await this.clientRepository.findByEmail(email)
+    if (existingClient) {
+      return existingClient
     }
 
-    return client
+    return this.clientRepository.create(NewClientEntity.create(name, email))
   }
 
   private async listActiveGatewaysOrFail() {

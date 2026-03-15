@@ -13,7 +13,6 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
       cardLastNumbers: transaction.cardLastNumbers.value,
       client: {
         id: client.id.value,
-        userId: client.userId.value,
         name: client.name.value,
         email: client.email.value,
       },

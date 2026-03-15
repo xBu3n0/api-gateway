@@ -104,24 +104,15 @@ router
       .as('products')
       .use(middleware.auth())
 
-    router
-      .post('purchases', [controllers.http.Purchases, 'store'])
-      .as('purchases.store')
-      .use(middleware.auth())
+    router.post('purchases', [controllers.http.Purchases, 'store']).as('purchases.store')
 
     router
       .group(() => {
-        router
-          .get('/', [controllers.http.Clients, 'index'])
-          .use(middleware.client({ abilities: ['readAll'] }))
-
-        router
-          .get('/:id', [controllers.http.Clients, 'show'])
-          .use(middleware.client({ abilities: ['read'] }))
+        router.get('/', [controllers.http.Clients, 'index'])
+        router.get('/:id', [controllers.http.Clients, 'show'])
       })
       .prefix('clients')
       .as('clients')
-      .use(middleware.auth())
 
     router
       .group(() => {

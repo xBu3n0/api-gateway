@@ -8,13 +8,10 @@ import { createPurchaseValidator } from '#validators/purchase'
 export default class PurchasesController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  async store({ auth, request, serialize }: HttpContext) {
+  async store({ request, serialize }: HttpContext) {
     const payload = await request.validateUsing(createPurchaseValidator)
 
-    const transaction = await this.transactionService.purchase({
-      userId: auth.getUserOrFail().id,
-      ...payload,
-    })
+    const transaction = await this.transactionService.purchase(payload)
 
     const serializedTransaction = await serialize(
       TransactionDetailsTransformer.transform(transaction)

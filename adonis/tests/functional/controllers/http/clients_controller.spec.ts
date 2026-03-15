@@ -1,7 +1,6 @@
 import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
-import { UserFactory } from '#database/factories/user_factory'
 import { ClientFactory } from '#database/factories/client_factory'
 import { GatewayFactory } from '#database/factories/gateway_factory'
 import { ProductFactory } from '#database/factories/product_factory'
@@ -34,8 +33,6 @@ async function cleanupClients() {
   await db.from('products').delete()
   await db.from('gateways').delete()
   await db.from('clients').delete()
-  await db.from('auth_access_tokens').delete()
-  await db.from('users').delete()
 }
 
 test.group('ClientsController | functional', (group) => {
@@ -51,14 +48,15 @@ test.group('ClientsController | functional', (group) => {
 
   group.each.timeout(10000)
 
-  test('rejects guests when listing clients', async ({ client }) => {
+  test('lists clients publicly', async ({ client }) => {
+    await ClientFactory.create()
+
     const response = await client.get(CLIENTS_BASE_URL)
 
-    response.assertStatus(401)
+    response.assertStatus(200)
   })
 
   test('shows a client with serialized transactions only', async ({ client }) => {
-    const authenticatedUser = await UserFactory.create()
     const clientRecord = await ClientFactory.create()
     const gateway = await GatewayFactory.merge({
       name: 'gateway 2',
@@ -84,14 +82,11 @@ test.group('ClientsController | functional', (group) => {
       quantity: 2,
     }).create()
 
-    const response = await client
-      .get(`${CLIENTS_BASE_URL}/${clientRecord.id}`)
-      .loginAs(authenticatedUser)
+    const response = await client.get(`${CLIENTS_BASE_URL}/${clientRecord.id}`)
 
     response.assertStatus(200)
     response.assertBody({
       id: clientRecord.id,
-      userId: clientRecord.userId,
       name: clientRecord.name,
       email: clientRecord.email,
       transactions: [
@@ -103,7 +98,6 @@ test.group('ClientsController | functional', (group) => {
           cardLastNumbers: '6063',
           client: {
             id: clientRecord.id,
-            userId: clientRecord.userId,
             name: clientRecord.name,
             email: clientRecord.email,
           },

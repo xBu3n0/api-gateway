@@ -119,7 +119,6 @@ export default class LucidTransactionRepository implements TransactionRepository
 
     const client = ClientEntity.fromRecord({
       id: clientModel.id,
-      userId: clientModel.userId,
       name: clientModel.name,
       email: clientModel.email,
     })

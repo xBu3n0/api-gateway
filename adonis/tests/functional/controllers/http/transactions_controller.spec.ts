@@ -182,7 +182,6 @@ test.group('TransactionsController | functional', (group) => {
         cardLastNumbers: '6063',
         client: {
           id: clientRecord.id,
-          userId: clientRecord.userId,
           name: clientRecord.name,
           email: clientRecord.email,
         },
@@ -252,7 +251,6 @@ test.group('TransactionsController | functional', (group) => {
         cardLastNumbers: '6063',
         client: {
           id: clientRecord.id,
-          userId: clientRecord.userId,
           name: clientRecord.name,
           email: clientRecord.email,
         },

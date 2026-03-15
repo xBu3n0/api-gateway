@@ -2,9 +2,6 @@ import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import User from '#models/auth/user'
-import Client from '#models/transactions/client'
-import ClientService from '#services/transactions/client.service'
-import UserEntity from '#domain/entities/shared/user.entity'
 import { UserFactory } from '#database/factories/user_factory'
 import { RoleEnum } from '#enums/auth/role.enum'
 
@@ -40,15 +37,7 @@ async function runAceCommand(commandName: string, args: string[]) {
 
 async function cleanupUsers() {
   await db.from('auth_access_tokens').delete()
-  await db.from('clients').delete()
   await db.from('users').delete()
-}
-
-async function syncClientForUser(user: User) {
-  const clientService = await app.container.make(ClientService)
-  await clientService.ensureForUser(UserEntity.fromRecord(user.toRecord()))
-
-  return user
 }
 
 test.group('UsersController | functional', (group) => {
@@ -121,10 +110,6 @@ test.group('UsersController | functional', (group) => {
       },
     })
     assert.notProperty(user, 'password')
-
-    const createdClient = await Client.findByOrFail('email', 'created-user@example.com')
-    assert.equal(createdClient.userId, user.id)
-    assert.equal(createdClient.name, 'created-user@example.com')
   })
 
   test('creates a user for managers', async ({ client, assert }) => {
@@ -153,9 +138,6 @@ test.group('UsersController | functional', (group) => {
       },
     })
     assert.notProperty(user, 'password')
-
-    const createdClient = await Client.findByOrFail('email', 'created-by-manager@example.com')
-    assert.equal(createdClient.userId, user.id)
   })
 
   test('rejects managers when creating an admin user', async ({ client }) => {
@@ -246,7 +228,7 @@ test.group('UsersController | functional', (group) => {
   test('updates a user for admins', async ({ client, assert }) => {
     // given
     const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
-    const user = await syncClientForUser(await UserFactory.merge({ role: RoleEnum.USER }).create())
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
 
     // when
     const response = await client.patch(`${USERS_BASE_URL}/${user.id}`).loginAs(admin).json({
@@ -265,17 +247,14 @@ test.group('UsersController | functional', (group) => {
     })
 
     const updatedUser = await User.findOrFail(user.id)
-    const syncedClient = await Client.findByOrFail('userId', user.id)
     assert.equal(updatedUser.email, 'updated-user@example.com')
     assert.equal(updatedUser.role, RoleEnum.MANAGER)
-    assert.equal(syncedClient.email, 'updated-user@example.com')
-    assert.equal(syncedClient.name, 'updated-user@example.com')
   })
 
   test('updates a non-admin user for managers', async ({ client, assert }) => {
     // given
     const manager = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
-    const user = await syncClientForUser(await UserFactory.merge({ role: RoleEnum.USER }).create())
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
 
     // when
     const response = await client.patch(`${USERS_BASE_URL}/${user.id}`).loginAs(manager).json({
@@ -294,11 +273,8 @@ test.group('UsersController | functional', (group) => {
     })
 
     const updatedUser = await User.findOrFail(user.id)
-    const syncedClient = await Client.findByOrFail('userId', user.id)
     assert.equal(updatedUser.email, 'updated-by-manager@example.com')
     assert.equal(updatedUser.role, RoleEnum.FINANCE)
-    assert.equal(syncedClient.email, 'updated-by-manager@example.com')
-    assert.equal(syncedClient.name, 'updated-by-manager@example.com')
   })
 
   test('rejects managers when updating an admin', async ({ client }) => {
@@ -360,7 +336,6 @@ test.group('UsersController | functional', (group) => {
       message: 'User removed successfully',
     })
     assert.isNull(await User.find(user.id))
-    assert.isNull(await Client.findBy('userId', user.id))
   })
 
   test('deletes a non-admin user for managers', async ({ client, assert }) => {
@@ -377,7 +352,6 @@ test.group('UsersController | functional', (group) => {
       message: 'User removed successfully',
     })
     assert.isNull(await User.find(user.id))
-    assert.isNull(await Client.findBy('userId', user.id))
   })
 
   test('rejects managers when deleting an admin', async ({ client }) => {
