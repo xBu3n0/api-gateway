@@ -2,7 +2,6 @@ import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import type { ChargeGatewayInput, GatewayChargeResult } from '#application/gateways/payment_gateway'
 import type PaymentGateway from '#application/gateways/payment_gateway'
-import GatewayProcessorNotConfiguredException from '#domain/exceptions/transactions/gateway_processor_not_configured.exception'
 import GatewayProcessorRegistry from '#services/transactions/gateway_processor_registry'
 import TransactionService from '#services/transactions/transaction.service'
 import type GatewayEntity from '#domain/entities/shared/gateway.entity'
@@ -47,24 +46,27 @@ export async function makeTransactionService(processors: FakeGatewayProcessor[])
     productRepository,
     clientRepository,
     gatewayRepository,
-    new FakeGatewayProcessorRegistry(processors)
+    new GatewayProcessorRegistry(processors)
   )
 }
 
 export class FakeGatewayProcessor implements PaymentGateway {
+  readonly provider: string
   readonly chargeCalls: ChargeGatewayInput[] = []
   readonly refundCalls: string[] = []
 
   constructor(
-    readonly gatewayName: string,
+    provider: string,
     private readonly result: GatewayChargeResult | Error
-  ) {}
-
-  supports(gateway: GatewayEntity) {
-    return gateway.name.value === this.gatewayName
+  ) {
+    this.provider = provider
   }
 
   async setup() {}
+
+  matchesGatewayProvider(gateway: GatewayEntity) {
+    return gateway.provider === this.provider
+  }
 
   async charge(input: ChargeGatewayInput) {
     this.chargeCalls.push(input)
@@ -78,28 +80,5 @@ export class FakeGatewayProcessor implements PaymentGateway {
 
   async refund(externalId: string) {
     this.refundCalls.push(externalId)
-  }
-}
-
-class FakeGatewayProcessorRegistry extends GatewayProcessorRegistry {
-  private readonly processorsByGatewayName: Map<string, PaymentGateway>
-
-  constructor(processors: FakeGatewayProcessor[]) {
-    super([])
-    this.processorsByGatewayName = new Map(
-      processors.map((processor) => [processor.gatewayName, processor])
-    )
-  }
-
-  getFor(gateway: GatewayEntity): PaymentGateway {
-    const processor = this.processorsByGatewayName.get(gateway.name.value)
-
-    if (!processor) {
-      throw new GatewayProcessorNotConfiguredException(
-        `No payment gateway processor was configured for '${gateway.name.value}'.`
-      )
-    }
-
-    return processor
   }
 }

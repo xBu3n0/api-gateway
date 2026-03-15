@@ -7,6 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
+      table.string('provider').notNullable().unique()
       table.string('name').notNullable()
       table.boolean('is_active').notNullable().defaultTo(true)
       table.integer('priority').unsigned().notNullable()

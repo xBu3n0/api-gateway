@@ -13,9 +13,11 @@ export interface GatewayChargeResult {
 }
 
 export default interface PaymentGateway {
+  provider: string
+
   setup(): Promise<void>
 
-  supports(gateway: GatewayEntity): boolean
+  matchesGatewayProvider(gateway: GatewayEntity): boolean
 
   charge(input: ChargeGatewayInput): Promise<GatewayChargeResult>
 

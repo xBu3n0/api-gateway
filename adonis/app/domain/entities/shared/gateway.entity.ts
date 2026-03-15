@@ -5,6 +5,7 @@ import { GatewayStatus } from '#domain/primitives/transactions/gateway_status.pr
 
 export interface GatewayRecord {
   id: number
+  provider: string
   name: string
   isActive: boolean
   priority: number
@@ -15,6 +16,7 @@ export interface GatewayRecord {
 export default class GatewayEntity {
   private constructor(
     readonly id: GatewayId,
+    readonly provider: string,
     readonly name: GatewayName,
     readonly status: GatewayStatus,
     readonly priority: GatewayPriority
@@ -23,6 +25,7 @@ export default class GatewayEntity {
   static fromRecord(record: GatewayRecord) {
     return new GatewayEntity(
       GatewayId.create(record.id),
+      record.provider,
       GatewayName.create(record.name),
       record.isActive ? GatewayStatus.active() : GatewayStatus.inactive(),
       GatewayPriority.create(record.priority)
@@ -30,21 +33,33 @@ export default class GatewayEntity {
   }
 
   activate() {
-    return new GatewayEntity(this.id, this.name, GatewayStatus.active(), this.priority)
+    return new GatewayEntity(
+      this.id,
+      this.provider,
+      this.name,
+      GatewayStatus.active(),
+      this.priority
+    )
   }
 
   deactivate() {
-    return new GatewayEntity(this.id, this.name, GatewayStatus.inactive(), this.priority)
+    return new GatewayEntity(
+      this.id,
+      this.provider,
+      this.name,
+      GatewayStatus.inactive(),
+      this.priority
+    )
   }
 
   changeName(name: GatewayName) {
-    return new GatewayEntity(this.id, name, this.status, this.priority)
+    return new GatewayEntity(this.id, this.provider, name, this.status, this.priority)
   }
 
   changePriority(priority: GatewayPriority | number) {
     const nextPriority =
       priority instanceof GatewayPriority ? priority : GatewayPriority.create(priority)
 
-    return new GatewayEntity(this.id, this.name, this.status, nextPriority)
+    return new GatewayEntity(this.id, this.provider, this.name, this.status, nextPriority)
   }
 }

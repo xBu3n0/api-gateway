@@ -6,6 +6,7 @@ test('builds a gateway entity from stored data', ({ assert }) => {
   // given
   const record = {
     id: 1,
+    provider: 'gateway_one',
     name: 'Gateway 1',
     isActive: true,
     priority: 1,
@@ -27,6 +28,7 @@ test('deactivates a gateway immutably', ({ assert }) => {
   // given
   const entity = GatewayEntity.fromRecord({
     id: 2,
+    provider: 'gateway_two',
     name: 'Gateway 2',
     isActive: true,
     priority: 2,
@@ -49,6 +51,7 @@ test('activates a gateway immutably', ({ assert }) => {
   // given
   const entity = GatewayEntity.fromRecord({
     id: 2,
+    provider: 'gateway_two',
     name: 'Gateway 2',
     isActive: false,
     priority: 2,
@@ -71,6 +74,7 @@ test('changes the priority while keeping other data intact', ({ assert }) => {
   // given
   const entity = GatewayEntity.fromRecord({
     id: 3,
+    provider: 'gateway_fallback',
     name: 'Gateway Fallback',
     isActive: true,
     priority: 3,

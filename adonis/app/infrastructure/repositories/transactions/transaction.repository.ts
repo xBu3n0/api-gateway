@@ -126,6 +126,7 @@ export default class LucidTransactionRepository implements TransactionRepository
 
     const gateway = GatewayEntity.fromRecord({
       id: gatewayModel.id,
+      provider: gatewayModel.provider,
       name: gatewayModel.name,
       isActive: gatewayModel.isActive,
       priority: gatewayModel.priority,

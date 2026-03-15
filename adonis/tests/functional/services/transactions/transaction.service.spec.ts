@@ -45,11 +45,12 @@ test.group('TransactionService integration (real database)', (group) => {
     const firstProduct = await ProductFactory.merge({ amount: '10.00' }).create()
     const secondProduct = await ProductFactory.merge({ amount: '5.00' }).create()
     const gateway = await GatewayFactory.merge({
+      provider: 'gateway_one',
       name: 'Gateway 1',
       priority: 1,
       isActive: true,
     }).create()
-    const processor = new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-1-tx' })
+    const processor = new FakeGatewayProcessor('gateway_one', { externalId: 'gw-1-tx' })
     const service = await makeTransactionService([processor])
 
     // when
@@ -86,13 +87,14 @@ test.group('TransactionService integration (real database)', (group) => {
     const user = await syncClientForUser(await UserFactory.create())
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({
+      provider: 'gateway_one',
       name: 'Gateway 1',
       priority: 1,
       isActive: true,
     }).create()
     const originalClient = await Client.findByOrFail('userId', user.id)
     const service = await makeTransactionService([
-      new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-existing-client' }),
+      new FakeGatewayProcessor('gateway_one', { externalId: 'gw-existing-client' }),
     ])
 
     // when
@@ -120,14 +122,20 @@ test.group('TransactionService integration (real database)', (group) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
-    await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
+    await GatewayFactory.merge({
+      provider: 'gateway_one',
+      name: 'Gateway 1',
+      priority: 1,
+      isActive: true,
+    }).create()
     const secondGateway = await GatewayFactory.merge({
+      provider: 'gateway_two',
       name: 'Gateway 2',
       priority: 2,
       isActive: true,
     }).create()
-    const failingGateway = new FakeGatewayProcessor('Gateway 1', new Error('fail'))
-    const successfulGateway = new FakeGatewayProcessor('Gateway 2', { externalId: 'gw-2-tx' })
+    const failingGateway = new FakeGatewayProcessor('gateway_one', new Error('fail'))
+    const successfulGateway = new FakeGatewayProcessor('gateway_two', { externalId: 'gw-2-tx' })
     const service = await makeTransactionService([failingGateway, successfulGateway])
 
     // when
@@ -153,12 +161,13 @@ test.group('TransactionService integration (real database)', (group) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
     const gateway = await GatewayFactory.merge({
+      provider: 'gateway_one',
       name: 'Gateway 1',
       priority: 1,
       isActive: true,
     }).create()
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
-    const processor = new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-1-tx' })
+    const processor = new FakeGatewayProcessor('gateway_one', { externalId: 'gw-1-tx' })
     const service = await makeTransactionService([processor])
 
     // when
@@ -187,11 +196,21 @@ test.group('TransactionService integration (real database)', (group) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
-    await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
-    await GatewayFactory.merge({ name: 'Gateway 2', priority: 2, isActive: true }).create()
-    const successfulGateway = new FakeGatewayProcessor('Gateway 2', { externalId: 'gw-2-tx' })
+    await GatewayFactory.merge({
+      provider: 'gateway_one',
+      name: 'Gateway 1',
+      priority: 1,
+      isActive: true,
+    }).create()
+    await GatewayFactory.merge({
+      provider: 'gateway_two',
+      name: 'Gateway 2',
+      priority: 2,
+      isActive: true,
+    }).create()
+    const successfulGateway = new FakeGatewayProcessor('gateway_two', { externalId: 'gw-2-tx' })
     const service = await makeTransactionService([
-      new FakeGatewayProcessor('Gateway 1', new Error('fail')),
+      new FakeGatewayProcessor('gateway_one', new Error('fail')),
       successfulGateway,
     ])
     const purchase = await service.purchase({
@@ -217,10 +236,20 @@ test.group('TransactionService integration (real database)', (group) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
-    await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
-    await GatewayFactory.merge({ name: 'Gateway 2', priority: 2, isActive: true }).create()
-    const firstGateway = new FakeGatewayProcessor('Gateway 1', new Error('fail'))
-    const secondGateway = new FakeGatewayProcessor('Gateway 2', new Error('fail'))
+    await GatewayFactory.merge({
+      provider: 'gateway_one',
+      name: 'Gateway 1',
+      priority: 1,
+      isActive: true,
+    }).create()
+    await GatewayFactory.merge({
+      provider: 'gateway_two',
+      name: 'Gateway 2',
+      priority: 2,
+      isActive: true,
+    }).create()
+    const firstGateway = new FakeGatewayProcessor('gateway_one', new Error('fail'))
+    const secondGateway = new FakeGatewayProcessor('gateway_two', new Error('fail'))
     const service = await makeTransactionService([firstGateway, secondGateway])
 
     // when
@@ -253,12 +282,13 @@ test.group('TransactionService integration (real database)', (group) => {
     const user = await syncClientForUser(await UserFactory.create())
     const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({
+      provider: 'gateway_one',
       name: 'Gateway 1',
       priority: 1,
       isActive: true,
     }).create()
     await Client.query().where('user_id', user.id).delete()
-    const processor = new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-missing-client' })
+    const processor = new FakeGatewayProcessor('gateway_one', { externalId: 'gw-missing-client' })
     const service = await makeTransactionService([processor])
 
     // when

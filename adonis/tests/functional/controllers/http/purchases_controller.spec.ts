@@ -24,24 +24,30 @@ type PurchaseResponseBody = {
 }
 
 class SpyGatewayProcessor implements PaymentGateway {
+  readonly provider: string
   readonly chargeCalls: ChargeGatewayInput[] = []
   setupCalls = 0
 
-  constructor(private readonly gatewayName: string) {}
-
-  supports(gateway: GatewayEntity) {
-    return gateway.name.value === this.gatewayName
+  constructor(
+    provider: string,
+    private readonly gatewayLabel: string
+  ) {
+    this.provider = provider
   }
 
   async setup() {
     this.setupCalls += 1
   }
 
+  matchesGatewayProvider(gateway: GatewayEntity) {
+    return gateway.provider === this.provider
+  }
+
   async charge(input: ChargeGatewayInput): Promise<GatewayChargeResult> {
     this.chargeCalls.push(input)
 
     return {
-      externalId: `${this.gatewayName.toLowerCase().replaceAll(' ', '-')}-test-transaction`,
+      externalId: `${this.gatewayLabel.toLowerCase().replaceAll(' ', '-')}-test-transaction`,
     }
   }
 
@@ -100,8 +106,8 @@ test.group('PurchasesController | functional', (group) => {
   })
 
   group.each.setup(async () => {
-    gatewayOneProcessor = new SpyGatewayProcessor('Gateway 1')
-    gatewayTwoProcessor = new SpyGatewayProcessor('Gateway 2')
+    gatewayOneProcessor = new SpyGatewayProcessor('gateway_one', 'Gateway 1')
+    gatewayTwoProcessor = new SpyGatewayProcessor('gateway_two', 'Gateway 2')
     await cleanupTransactions()
   })
 
@@ -114,6 +120,7 @@ test.group('PurchasesController | functional', (group) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
     const gateway = await GatewayFactory.merge({
+      provider: 'gateway_one',
       name: 'Gateway 1',
       isActive: true,
       priority: 1,

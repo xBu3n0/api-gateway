@@ -61,7 +61,15 @@ export class ClientSchema extends BaseModel {
 }
 
 export class GatewaySchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'isActive', 'name', 'priority', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'id',
+    'isActive',
+    'name',
+    'priority',
+    'provider',
+    'updatedAt',
+  ] as const
   $columns = GatewaySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -73,6 +81,8 @@ export class GatewaySchema extends BaseModel {
   declare name: string
   @column()
   declare priority: number
+  @column()
+  declare provider: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

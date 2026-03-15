@@ -10,7 +10,7 @@ export default class GatewayProcessorRegistry {
   ) {}
 
   getFor(gateway: GatewayEntity): PaymentGateway {
-    const processor = this.processors.find((candidate) => candidate.supports(gateway))
+    const processor = this.processors.find((candidate) => candidate.matchesGatewayProvider(gateway))
 
     if (!processor) {
       throw new GatewayProcessorNotConfiguredException(

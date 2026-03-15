@@ -4,8 +4,9 @@ import Gateway from '#models/transactions/gateway'
 export default class extends BaseSeeder {
   async run() {
     await Gateway.firstOrCreate(
-      { name: 'gateway 1' },
+      { provider: 'gateway_one' },
       {
+        provider: 'gateway_one',
         name: 'gateway 1',
         priority: 1,
         isActive: true,
@@ -13,8 +14,9 @@ export default class extends BaseSeeder {
     )
 
     await Gateway.firstOrCreate(
-      { name: 'gateway 2' },
+      { provider: 'gateway_two' },
       {
+        provider: 'gateway_two',
         name: 'gateway 2',
         priority: 2,
         isActive: true,

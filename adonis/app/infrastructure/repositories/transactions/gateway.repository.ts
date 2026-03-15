@@ -9,6 +9,7 @@ export default class LucidGatewayRepository implements GatewayRepositoryInterfac
     return gateways.map((gateway) =>
       GatewayEntity.fromRecord({
         id: gateway.id,
+        provider: gateway.provider,
         name: gateway.name,
         isActive: gateway.isActive,
         priority: gateway.priority,
@@ -25,6 +26,7 @@ export default class LucidGatewayRepository implements GatewayRepositoryInterfac
     return gateways.map((gateway) =>
       GatewayEntity.fromRecord({
         id: gateway.id,
+        provider: gateway.provider,
         name: gateway.name,
         isActive: gateway.isActive,
         priority: gateway.priority,
@@ -40,6 +42,7 @@ export default class LucidGatewayRepository implements GatewayRepositoryInterfac
 
     return GatewayEntity.fromRecord({
       id: gateway.id,
+      provider: gateway.provider,
       name: gateway.name,
       isActive: gateway.isActive,
       priority: gateway.priority,
@@ -57,6 +60,7 @@ export default class LucidGatewayRepository implements GatewayRepositoryInterfac
 
     return GatewayEntity.fromRecord({
       id: gateway.id,
+      provider: gateway.provider,
       name: gateway.name,
       isActive: gateway.isActive,
       priority: gateway.priority,

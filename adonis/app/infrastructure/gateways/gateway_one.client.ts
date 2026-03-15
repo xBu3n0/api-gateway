@@ -2,10 +2,12 @@ import type { AxiosInstance } from 'axios'
 import type PaymentGateway from '#application/gateways/payment_gateway'
 import type { ChargeGatewayInput, GatewayChargeResult } from '#application/gateways/payment_gateway'
 import type GatewayEntity from '#domain/entities/shared/gateway.entity'
-import gatewayConfig, { normalizeGatewayName } from '#config/gateways'
+import gatewayConfig from '#config/gateways'
 import BaseGatewayClient from '#infrastructure/gateways/base_gateway.client'
 
 export default class GatewayOneClient extends BaseGatewayClient implements PaymentGateway {
+  provider = 'gateway_one'
+
   private readonly publicClient: AxiosInstance
   private readonly authenticatedClient: AxiosInstance
   private authToken: string | null = null
@@ -23,13 +25,12 @@ export default class GatewayOneClient extends BaseGatewayClient implements Payme
     })
   }
 
-  supports(gateway: GatewayEntity) {
-    const normalizedName = normalizeGatewayName(gateway.name.value)
-    return ['gateway1', normalizeGatewayName(gatewayConfig.one.name)].includes(normalizedName)
-  }
-
   async setup() {
     await this.getToken()
+  }
+
+  matchesGatewayProvider(gateway: GatewayEntity) {
+    return gateway.provider === this.provider
   }
 
   async charge(input: ChargeGatewayInput): Promise<GatewayChargeResult> {
