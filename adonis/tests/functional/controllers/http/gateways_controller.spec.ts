@@ -86,32 +86,15 @@ test.group('GatewaysController | functional', (group) => {
     ])
   })
 
-  test('rejects non-admin users when updating gateway status', async ({ client }) => {
+  test('updates gateway status for authenticated users', async ({ client, assert }) => {
     // given
-    const user = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.USER }).create()
     const gateway = await GatewayFactory.merge({ priority: 1, isActive: true }).create()
 
     // when
     const response = await client
       .patch(`${GATEWAYS_BASE_URL}/${gateway.id}/status`)
       .loginAs(user)
-      .json({
-        isActive: false,
-      })
-
-    // then
-    response.assertStatus(403)
-  })
-
-  test('updates gateway status for admins', async ({ client, assert }) => {
-    // given
-    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
-    const gateway = await GatewayFactory.merge({ priority: 1, isActive: true }).create()
-
-    // when
-    const response = await client
-      .patch(`${GATEWAYS_BASE_URL}/${gateway.id}/status`)
-      .loginAs(admin)
       .json({
         isActive: false,
       })
@@ -131,16 +114,16 @@ test.group('GatewaysController | functional', (group) => {
     assert.isFalse(updatedGateway.isActive)
   })
 
-  test('updates gateway priority for admins', async ({ client, assert }) => {
+  test('updates gateway priority for authenticated users', async ({ client, assert }) => {
     // given
-    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
+    const user = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
     const first = await GatewayFactory.merge({ priority: 1, isActive: true }).create()
     const second = await GatewayFactory.merge({ priority: 2, isActive: true }).create()
 
     // when
     const response = await client
       .patch(`${GATEWAYS_BASE_URL}/${second.id}/priority`)
-      .loginAs(admin)
+      .loginAs(user)
       .json({
         priority: 1,
       })
@@ -171,7 +154,7 @@ test.group('GatewaysController | functional', (group) => {
 
   test('returns validation error when gateway priority is invalid', async ({ client }) => {
     // given
-    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
+    const admin = await UserFactory.merge({ role: RoleEnum.MANAGER }).create()
     const gateway = await GatewayFactory.merge({ priority: 1, isActive: true }).create()
 
     // when
@@ -188,7 +171,7 @@ test.group('GatewaysController | functional', (group) => {
 
   test('returns not found when updating a missing gateway', async ({ client }) => {
     // given
-    const admin = await UserFactory.merge({ role: RoleEnum.ADMIN }).create()
+    const admin = await UserFactory.merge({ role: RoleEnum.USER }).create()
 
     // when
     const response = await client

@@ -14,7 +14,7 @@ export default class GatewayPolicy extends BasePolicy {
     return true
   }
 
-  update(user: User): AuthorizerResponse {
-    return user.role === RoleEnum.ADMIN
+  update(_user: User): AuthorizerResponse {
+    return true
   }
 }
