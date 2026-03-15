@@ -20,12 +20,7 @@ import type User from '#models/auth/user'
 const PURCHASES_BASE_URL = '/api/v1/purchases'
 
 type PurchaseResponseBody = {
-  data: Omit<InferData<TransactionDetailsTransformer>, 'items'> & {
-    items: Array<
-      InferData<TransactionDetailsTransformer>['items'][number] & { parcial_price: number }
-    >
-    total_price: number
-  }
+  data: InferData<TransactionDetailsTransformer>
 }
 
 class SpyGatewayProcessor implements PaymentGateway {
@@ -125,7 +120,7 @@ test.group('PurchasesController | functional', (group) => {
     }).create()
     const product = await ProductFactory.merge({
       name: 'Keyboard',
-      quantity: 10,
+      amount: '10.00',
     }).create()
 
     // when
@@ -137,7 +132,7 @@ test.group('PurchasesController | functional', (group) => {
         email: 'jane@betalent.tech',
         cardNumber: '5569000000006063',
         cvv: '010',
-        items: [{ productId: product.id, quantity: 2, price: '10.00' }],
+        items: [{ productId: product.id, quantity: 2 }],
       })
 
     // then
@@ -157,7 +152,6 @@ test.group('PurchasesController | functional', (group) => {
         id: createdTransaction.id,
         externalId: 'gateway-1-test-transaction',
         status: TransactionStatusEnum.AUTHORIZED,
-        amount: 20,
         cardLastNumbers: '6063',
         client: {
           id: createdClient.id,
@@ -173,15 +167,15 @@ test.group('PurchasesController | functional', (group) => {
         },
         items: [
           {
+            quantity: 2,
             product: {
               id: product.id,
               name: product.name,
+              amount: '10.00',
             },
-            quantity: 2,
-            parcial_price: 20,
           },
         ],
-        total_price: 20,
+        amount: '20.00',
       },
     })
 

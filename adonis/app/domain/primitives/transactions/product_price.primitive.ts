@@ -14,7 +14,7 @@ export class ProductPrice {
   }
 
   public multiply(value: number) {
-    if (!Number.isInteger(value) || value < 0) {
+    if (!Number.isInteger(value) || value <= 0) {
       throw new InvalidDomainException(`${value} is not a valid ProductPrice multiplier`)
     }
 
@@ -23,5 +23,13 @@ export class ProductPrice {
 
   public sum(amount: ProductPrice) {
     return new ProductPrice(this.value + amount.value)
+  }
+
+  public toDecimalString() {
+    const normalized = this.value.toString().padStart(3, '0')
+    const whole = normalized.slice(0, -2) || '0'
+    const cents = normalized.slice(-2)
+
+    return `${whole}.${cents}`
   }
 }

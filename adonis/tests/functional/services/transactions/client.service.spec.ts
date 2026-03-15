@@ -39,7 +39,7 @@ test.group('ClientService integration (real database)', (group) => {
     // given
     const client = await ClientFactory.create()
     const gateway = await GatewayFactory.merge({ priority: 1, isActive: true }).create()
-    const product = await ProductFactory.merge({ quantity: 1000 }).create()
+    const product = await ProductFactory.create()
     const transaction = await TransactionFactory.merge({
       clientId: client.id,
       gatewayId: gateway.id,

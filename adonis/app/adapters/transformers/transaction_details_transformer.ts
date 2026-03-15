@@ -9,7 +9,7 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
       id: transaction.id.value,
       externalId: transaction.externalId.value,
       status: transaction.status.value,
-      amount: Number(transaction.amount.value) / 100,
+      amount: transaction.amount.toDecimalString(),
       cardLastNumbers: transaction.cardLastNumbers.value,
       client: {
         id: client.id.value,
@@ -24,11 +24,12 @@ export default class TransactionDetailsTransformer extends BaseTransformer<Trans
         priority: gateway.priority.value,
       },
       items: items.map((item) => ({
+        quantity: item.quantity.value,
         product: {
           id: item.product.id.value,
           name: item.product.name.value,
+          amount: item.product.amount.toDecimalString(),
         },
-        quantity: item.quantity.value,
       })),
     }
   }

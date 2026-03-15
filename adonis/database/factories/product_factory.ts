@@ -5,7 +5,7 @@ export const ProductFactory = factory
   .define(Product, async ({ faker }) => {
     return {
       name: faker.commerce.productName().slice(0, 255),
-      quantity: faker.number.int({ min: 1, max: 100_000 }),
+      amount: faker.commerce.price({ min: 1, max: 1000, dec: 2 }),
     }
   })
   .build()

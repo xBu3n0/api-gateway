@@ -23,7 +23,7 @@ export default class extends BaseSchema {
         .inTable('products')
         .onDelete('CASCADE')
 
-      table.integer('quantity').unsigned().notNullable().defaultTo(1)
+      table.integer('quantity').unsigned().notNullable()
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

@@ -8,8 +8,8 @@ import ClientEntity from '#domain/entities/shared/client.entity'
 import GatewayEntity from '#domain/entities/shared/gateway.entity'
 import ProductEntity from '#domain/entities/shared/product.entity'
 import TransactionEntity from '#domain/entities/shared/transaction.entity'
-import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import type { ClientId } from '#domain/primitives/transactions/client_id.primitive'
+import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
 import type { TransactionId } from '#domain/primitives/transactions/transaction_id.primitive'
 import db from '@adonisjs/lucid/services/db'
 import type Client from '#models/transactions/client'
@@ -137,13 +137,12 @@ export default class LucidTransactionRepository implements TransactionRepository
       const productEntity = ProductEntity.fromRecord({
         id: product.id,
         name: product.name,
-        quantity: product.quantity,
+        amount: product.amount,
       })
-      const quantity = ProductQuantity.create(Number(product.$extras.pivot_quantity ?? 1))
 
       return {
         product: productEntity,
-        quantity,
+        quantity: ProductQuantity.create(Number(product.$extras.pivot_quantity)),
       }
     })
 

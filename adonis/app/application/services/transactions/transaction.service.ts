@@ -37,7 +37,6 @@ export interface PurchaseInput {
   items: Array<{
     productId: number
     quantity: number
-    price: string
   }>
 }
 
@@ -149,18 +148,22 @@ export default class TransactionService {
     const items = input.map((item) => ({
       productId: ProductId.create(item.productId),
       quantity: ProductQuantity.create(item.quantity),
-      amount: ProductPrice.create(item.price),
     }))
 
     const products = await this.productRepository.findByIds(items.map((item) => item.productId))
-    const productsById = new Set(products.map((product) => product.id.value))
+    const productsById = new Map(products.map((product) => [product.id.value, product]))
 
     return items.map((item) => {
-      if (!productsById.has(item.productId.value)) {
+      const product = productsById.get(item.productId.value)
+
+      if (!product) {
         throw new ProductNotFoundException(`Product '${item.productId.value}' was not found.`)
       }
 
-      return item
+      return {
+        ...item,
+        amount: product.amount.multiply(item.quantity.value),
+      }
     })
   }
 
@@ -205,7 +208,7 @@ export default class TransactionService {
     let totalAmount = ProductPrice.create('0')
 
     for (const item of items) {
-      totalAmount = totalAmount.sum(item.amount.multiply(item.quantity.value))
+      totalAmount = totalAmount.sum(item.amount)
     }
 
     return totalAmount

@@ -1,13 +1,13 @@
 import type { ProductName } from '#domain/primitives/transactions/product_name.primitive'
-import type { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
+import type { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 
 export default class NewProductEntity {
   private constructor(
     readonly name: ProductName,
-    readonly quantity: ProductQuantity
+    readonly amount: ProductPrice
   ) {}
 
-  static create(name: ProductName, quantity: ProductQuantity) {
-    return new NewProductEntity(name, quantity)
+  static create(name: ProductName, amount: ProductPrice) {
+    return new NewProductEntity(name, amount)
   }
 }

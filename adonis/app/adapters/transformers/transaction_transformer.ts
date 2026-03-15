@@ -11,7 +11,7 @@ export default class TransactionTransformer extends BaseTransformer<TransactionE
       gatewayId: gatewayId.value,
       externalId: externalId.value,
       status: status.value,
-      amount: Number(amount.value) / 100,
+      amount: amount.toDecimalString(),
       cardLastNumbers: cardLastNumbers.value,
     }
   }

@@ -123,7 +123,7 @@ test.group('TransactionsController | functional', (group) => {
           gatewayId: transaction.gatewayId,
           externalId: transaction.externalId,
           status: TransactionStatusEnum.AUTHORIZED,
-          amount: transaction.amount / 100,
+          amount: (transaction.amount / 100).toFixed(2),
           cardLastNumbers: transaction.cardLastNumbers,
         },
       ],
@@ -135,8 +135,8 @@ test.group('TransactionsController | functional', (group) => {
     const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
     const clientRecord = await ClientFactory.create()
     const gateway = await GatewayFactory.merge({ isActive: true, priority: 1 }).create()
-    const firstProduct = await ProductFactory.merge({ quantity: 10 }).create()
-    const secondProduct = await ProductFactory.merge({ quantity: 5 }).create()
+    const firstProduct = await ProductFactory.merge({ amount: '10.00' }).create()
+    const secondProduct = await ProductFactory.merge({ amount: '5.00' }).create()
     const transaction = await TransactionFactory.merge({
       clientId: clientRecord.id,
       gatewayId: gateway.id,
@@ -168,7 +168,7 @@ test.group('TransactionsController | functional', (group) => {
         id: transaction.id,
         externalId: 'tx-show-1',
         status: TransactionStatusEnum.AUTHORIZED,
-        amount: 20,
+        amount: '20.00',
         cardLastNumbers: '6063',
         client: {
           id: clientRecord.id,
@@ -184,18 +184,20 @@ test.group('TransactionsController | functional', (group) => {
         },
         items: [
           {
+            quantity: 1,
             product: {
               id: firstProduct.id,
               name: firstProduct.name,
+              amount: '10.00',
             },
-            quantity: 1,
           },
           {
+            quantity: 2,
             product: {
               id: secondProduct.id,
               name: secondProduct.name,
+              amount: '5.00',
             },
-            quantity: 2,
           },
         ],
       },
@@ -235,7 +237,7 @@ test.group('TransactionsController | functional', (group) => {
         id: transaction.id,
         externalId: 'gw-2-refund-1',
         status: TransactionStatusEnum.REFUNDED,
-        amount: 20,
+        amount: '20.00',
         cardLastNumbers: '6063',
         client: {
           id: clientRecord.id,

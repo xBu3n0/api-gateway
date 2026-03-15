@@ -17,7 +17,7 @@ async function makeProductInput() {
 
   return {
     name: product.name,
-    quantity: product.quantity,
+    amount: product.amount,
   }
 }
 
@@ -44,7 +44,7 @@ test.group('ProductService integration (real database)', (group) => {
 
     // then
     assert.equal(created.name.value, input.name)
-    assert.equal(created.quantity.value, input.quantity)
+    assert.equal(created.amount.value, BigInt(input.amount.replace('.', '')))
   })
 
   test('updates an existing product', async ({ assert }) => {
@@ -59,7 +59,7 @@ test.group('ProductService integration (real database)', (group) => {
     // then
     assert.equal(updated.id.value, product.id)
     assert.equal(updated.name.value, input.name)
-    assert.equal(updated.quantity.value, input.quantity)
+    assert.equal(updated.amount.value, BigInt(input.amount.replace('.', '')))
   })
 
   test('returns not found when trying to update a missing product', async ({ assert }) => {
@@ -98,7 +98,7 @@ test.group('ProductService integration (real database)', (group) => {
 
     // then
     assert.equal(byId.name.value, product.name)
-    assert.equal(byId.quantity.value, product.quantity)
+    assert.equal(byId.amount.value, BigInt(product.amount.replace('.', '')))
   })
 
   test('deletes a product', async ({ assert }) => {

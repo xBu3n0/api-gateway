@@ -1,11 +1,11 @@
 import { ProductId } from '#domain/primitives/transactions/product_id.primitive'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
-import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 
 export interface ProductRecord {
   id: number
   name: string
-  quantity: number
+  amount: string | number
   createdAt?: Date
   updatedAt?: Date
 }
@@ -14,22 +14,22 @@ export default class ProductEntity {
   private constructor(
     readonly id: ProductId,
     readonly name: ProductName,
-    readonly quantity: ProductQuantity
+    readonly amount: ProductPrice
   ) {}
 
   static fromRecord(record: ProductRecord) {
     return new ProductEntity(
       ProductId.create(record.id),
       ProductName.create(record.name),
-      ProductQuantity.create(record.quantity)
+      ProductPrice.create(String(record.amount))
     )
   }
 
   changeName(name: ProductName) {
-    return new ProductEntity(this.id, name, this.quantity)
+    return new ProductEntity(this.id, name, this.amount)
   }
 
-  changeQuantity(quantity: ProductQuantity) {
-    return new ProductEntity(this.id, this.name, quantity)
+  changeAmount(amount: ProductPrice) {
+    return new ProductEntity(this.id, this.name, amount)
   }
 }

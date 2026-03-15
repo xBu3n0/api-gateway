@@ -1,14 +1,14 @@
 import { test } from '@japa/runner'
 import ProductEntity from '#domain/entities/shared/product.entity'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
-import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 
 test('builds a product entity from stored data', ({ assert }) => {
   // given
   const record = {
     id: 1,
     name: 'Online Course',
-    quantity: 19990,
+    amount: '199.90',
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -19,7 +19,7 @@ test('builds a product entity from stored data', ({ assert }) => {
   // then
   assert.equal(entity.id.value, 1)
   assert.equal(entity.name.value, record.name)
-  assert.equal(entity.quantity.value, record.quantity)
+  assert.equal(entity.amount.value, 19990n)
 })
 
 test('updates the product name while keeping the original immutable', ({ assert }) => {
@@ -27,7 +27,7 @@ test('updates the product name while keeping the original immutable', ({ assert 
   const entity = ProductEntity.fromRecord({
     id: 2,
     name: 'Basic Plan',
-    quantity: 9900,
+    amount: '99.00',
     createdAt: new Date(),
     updatedAt: new Date(),
   })
@@ -38,32 +38,31 @@ test('updates the product name while keeping the original immutable', ({ assert 
 
   // then
   assert.equal(entity.name.value, 'Basic Plan')
-  assert.equal(entity.quantity.value, 9900)
+  assert.equal(entity.amount.value, 9900n)
   assert.equal(renamed.name.value, 'Premium Plan')
-  assert.equal(renamed.quantity.value, entity.quantity.value)
+  assert.equal(renamed.amount.value, entity.amount.value)
   assert.equal(renamed.id.value, entity.id.value)
   assert.notStrictEqual(entity, renamed)
 })
 
-test('updates the product quantity while keeping the original immutable', ({ assert }) => {
+test('updates the product amount while keeping the original immutable', ({ assert }) => {
   // given
   const entity = ProductEntity.fromRecord({
     id: 2,
     name: 'Basic Plan',
-    quantity: 9900,
+    amount: '99.00',
     createdAt: new Date(),
     updatedAt: new Date(),
   })
-  const updatedQuantity = ProductQuantity.create(19900)
+  const updatedAmount = ProductPrice.create('199.00')
 
   // when
-  const repriced = entity.changeQuantity(updatedQuantity)
+  const updated = entity.changeAmount(updatedAmount)
 
   // then
   assert.equal(entity.name.value, 'Basic Plan')
-  assert.equal(entity.quantity.value, 9900)
-  assert.equal(repriced.name.value, entity.name.value)
-  assert.equal(repriced.quantity.value, 19900)
-  assert.equal(repriced.id.value, entity.id.value)
-  assert.notStrictEqual(entity, repriced)
+  assert.equal(entity.amount.value, 9900n)
+  assert.equal(updated.amount.value, 19900n)
+  assert.equal(updated.id.value, entity.id.value)
+  assert.notStrictEqual(entity, updated)
 })

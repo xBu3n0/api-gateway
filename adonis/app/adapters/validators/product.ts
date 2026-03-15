@@ -1,14 +1,14 @@
 import vine from '@vinejs/vine'
 
 const name = () => vine.string().trim().minLength(1).maxLength(255)
-const quantity = () => vine.number().withoutDecimals().positive()
+const amount = () => vine.string().regex(/^\d+\.\d{2}$/)
 
 export const createProductValidator = vine.create({
   name: name(),
-  quantity: quantity(),
+  amount: amount(),
 })
 
 export const updateProductValidator = vine.create({
   name: name().optional(),
-  quantity: quantity().optional(),
+  amount: amount().optional(),
 })

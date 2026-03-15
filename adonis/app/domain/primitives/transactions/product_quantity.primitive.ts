@@ -10,8 +10,4 @@ export class ProductQuantity {
 
     return new ProductQuantity(value)
   }
-
-  public multiply(amount: number) {
-    return this.value * amount
-  }
 }

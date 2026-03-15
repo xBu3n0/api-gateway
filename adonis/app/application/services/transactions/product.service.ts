@@ -5,16 +5,16 @@ import ProductEntity from '#domain/entities/shared/product.entity'
 import NewProductEntity from '#domain/entities/transactions/new_product.entity'
 import { ProductId } from '#domain/primitives/transactions/product_id.primitive'
 import { ProductName } from '#domain/primitives/transactions/product_name.primitive'
-import { ProductQuantity } from '#domain/primitives/transactions/product_quantity.primitive'
+import { ProductPrice } from '#domain/primitives/transactions/product_price.primitive'
 
 export interface CreateProductInput {
   name: string
-  quantity: number
+  amount: string
 }
 
 export interface UpdateProductInput {
   name?: string
-  quantity?: number
+  amount?: string
 }
 
 @inject()
@@ -28,7 +28,7 @@ export default class ProductService {
   async create(input: CreateProductInput) {
     const product = NewProductEntity.create(
       ProductName.create(input.name),
-      ProductQuantity.create(input.quantity)
+      ProductPrice.create(input.amount)
     )
 
     return this.productRepository.create(product)
@@ -48,8 +48,8 @@ export default class ProductService {
       updated = updated.changeName(ProductName.create(input.name))
     }
 
-    if (typeof input.quantity === 'number') {
-      updated = updated.changeQuantity(ProductQuantity.create(input.quantity))
+    if (input.amount) {
+      updated = updated.changeAmount(ProductPrice.create(input.amount))
     }
 
     return this.productRepository.update(updated)

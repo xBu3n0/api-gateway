@@ -16,10 +16,14 @@ export default class ClientsController {
 
   async show({ params, serialize }: HttpContext) {
     const result = await this.clientService.getById(Number(params.id))
+    const serializedClient = await serialize(ClientTransformer.transform(result.client))
+    const serializedTransactions = await serialize(
+      TransactionDetailsTransformer.transform(result.transactions)
+    )
 
-    return serialize({
-      ...ClientTransformer.transform(result.client),
-      transactions: TransactionDetailsTransformer.transform(result.transactions),
-    })
+    return {
+      ...serializedClient.data,
+      transactions: serializedTransactions.data,
+    }
   }
 }

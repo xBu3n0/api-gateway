@@ -11,7 +11,7 @@ export const TransactionProductFactory = factory
     return {
       transactionId: transaction.id,
       productId: product.id,
-      quantity: faker.number.int({ min: 1, max: 10 }),
+      quantity: faker.number.int({ min: 1, max: 5 }),
     }
   })
   .build()

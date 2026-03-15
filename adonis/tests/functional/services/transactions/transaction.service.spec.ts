@@ -42,8 +42,8 @@ test.group('TransactionService integration (real database)', (group) => {
   test('authorizes a purchase on the first successful gateway', async ({ assert }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const firstProduct = await ProductFactory.merge({ quantity: 10 }).create()
-    const secondProduct = await ProductFactory.merge({ quantity: 5 }).create()
+    const firstProduct = await ProductFactory.merge({ amount: '10.00' }).create()
+    const secondProduct = await ProductFactory.merge({ amount: '5.00' }).create()
     const gateway = await GatewayFactory.merge({
       name: 'Gateway 1',
       priority: 1,
@@ -60,8 +60,8 @@ test.group('TransactionService integration (real database)', (group) => {
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [
-        { productId: firstProduct.id, quantity: 2, price: '10.00' },
-        { productId: secondProduct.id, quantity: 1, price: '5.00' },
+        { productId: firstProduct.id, quantity: 2 },
+        { productId: secondProduct.id, quantity: 1 },
       ],
     })
 
@@ -84,7 +84,7 @@ test.group('TransactionService integration (real database)', (group) => {
   }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({
       name: 'Gateway 1',
       priority: 1,
@@ -102,7 +102,7 @@ test.group('TransactionService integration (real database)', (group) => {
       email: 'different@example.com',
       cardNumber: '5569000000006063',
       cvv: '010',
-      items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+      items: [{ productId: product.id, quantity: 1 }],
     })
 
     // then
@@ -119,7 +119,7 @@ test.group('TransactionService integration (real database)', (group) => {
   test('falls back to the next active gateway when a gateway charge fails', async ({ assert }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
     const secondGateway = await GatewayFactory.merge({
       name: 'Gateway 2',
@@ -137,7 +137,7 @@ test.group('TransactionService integration (real database)', (group) => {
       email: 'john@betalent.tech',
       cardNumber: '5569000000006063',
       cvv: '010',
-      items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+      items: [{ productId: product.id, quantity: 1 }],
     })
 
     // then
@@ -157,7 +157,7 @@ test.group('TransactionService integration (real database)', (group) => {
       priority: 1,
       isActive: true,
     }).create()
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     const processor = new FakeGatewayProcessor('Gateway 1', { externalId: 'gw-1-tx' })
     const service = await makeTransactionService([processor])
 
@@ -170,8 +170,8 @@ test.group('TransactionService integration (real database)', (group) => {
         cardNumber: '5569000000006063',
         cvv: '010',
         items: [
-          { productId: product.id, quantity: 1, price: '10.00' },
-          { productId: 999999, quantity: 1, price: '10.00' },
+          { productId: product.id, quantity: 1 },
+          { productId: 999999, quantity: 1 },
         ],
       })
 
@@ -186,7 +186,7 @@ test.group('TransactionService integration (real database)', (group) => {
   test('refunds an authorized transaction using the stored gateway', async ({ assert }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
     await GatewayFactory.merge({ name: 'Gateway 2', priority: 2, isActive: true }).create()
     const successfulGateway = new FakeGatewayProcessor('Gateway 2', { externalId: 'gw-2-tx' })
@@ -200,7 +200,7 @@ test.group('TransactionService integration (real database)', (group) => {
       email: 'john@betalent.tech',
       cardNumber: '5569000000006063',
       cvv: '010',
-      items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+      items: [{ productId: product.id, quantity: 1 }],
     })
 
     // when
@@ -216,7 +216,7 @@ test.group('TransactionService integration (real database)', (group) => {
   }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({ name: 'Gateway 1', priority: 1, isActive: true }).create()
     await GatewayFactory.merge({ name: 'Gateway 2', priority: 2, isActive: true }).create()
     const firstGateway = new FakeGatewayProcessor('Gateway 1', new Error('fail'))
@@ -231,7 +231,7 @@ test.group('TransactionService integration (real database)', (group) => {
         email: 'nogateway@betalent.tech',
         cardNumber: '5569000000006063',
         cvv: '010',
-        items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+        items: [{ productId: product.id, quantity: 1 }],
       })
 
     // then
@@ -251,7 +251,7 @@ test.group('TransactionService integration (real database)', (group) => {
   }) => {
     // given
     const user = await syncClientForUser(await UserFactory.create())
-    const product = await ProductFactory.merge({ quantity: 10 }).create()
+    const product = await ProductFactory.merge({ amount: '10.00' }).create()
     await GatewayFactory.merge({
       name: 'Gateway 1',
       priority: 1,
@@ -269,7 +269,7 @@ test.group('TransactionService integration (real database)', (group) => {
         email: 'missing-client@example.com',
         cardNumber: '5569000000006063',
         cvv: '010',
-        items: [{ productId: product.id, quantity: 1, price: '10.00' }],
+        items: [{ productId: product.id, quantity: 1 }],
       })
 
     // then
