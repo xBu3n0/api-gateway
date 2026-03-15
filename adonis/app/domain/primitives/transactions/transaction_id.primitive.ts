@@ -6,6 +6,10 @@ export class TransactionId extends IdPrimitive {
   }
 
   public static create(value: number): TransactionId {
-    return this.createId(value, this.name, (domainValidatedValue) => new TransactionId(domainValidatedValue))
+    return this.createId(
+      value,
+      this.name,
+      (domainValidatedValue) => new TransactionId(domainValidatedValue)
+    )
   }
 }

@@ -6,6 +6,10 @@ export class GatewayId extends IdPrimitive {
   }
 
   public static create(value: number): GatewayId {
-    return this.createId(value, this.name, (domainValidatedValue) => new GatewayId(domainValidatedValue))
+    return this.createId(
+      value,
+      this.name,
+      (domainValidatedValue) => new GatewayId(domainValidatedValue)
+    )
   }
 }

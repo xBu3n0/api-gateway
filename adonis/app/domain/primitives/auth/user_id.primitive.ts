@@ -6,6 +6,10 @@ export class UserId extends IdPrimitive {
   }
 
   public static create(value: number): UserId {
-    return this.createId(value, this.name, (domainValidatedValue) => new UserId(domainValidatedValue))
+    return this.createId(
+      value,
+      this.name,
+      (domainValidatedValue) => new UserId(domainValidatedValue)
+    )
   }
 }

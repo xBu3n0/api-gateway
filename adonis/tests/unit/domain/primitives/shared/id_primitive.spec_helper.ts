@@ -21,9 +21,11 @@ type IdPrimitiveSpecConfig<T extends IdPrimitiveInstance> = {
   }
 }
 
-export function runIdPrimitiveTests<T extends IdPrimitiveInstance>(
-  { primitive, accepts, rejects }: IdPrimitiveSpecConfig<T>
-) {
+export function runIdPrimitiveTests<T extends IdPrimitiveInstance>({
+  primitive,
+  accepts,
+  rejects,
+}: IdPrimitiveSpecConfig<T>) {
   test(accepts.title)
     .with(accepts.values)
     .run(({ assert }, validId) => {

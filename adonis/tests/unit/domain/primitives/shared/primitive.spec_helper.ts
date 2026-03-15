@@ -21,9 +21,11 @@ type PrimitiveSpecConfig<TInput, TPrimitive extends PrimitiveInstance<TInput>> =
   }
 }
 
-export function runPrimitiveTests<TInput, TPrimitive extends PrimitiveInstance<TInput>>(
-  { primitive, accepts, rejects }: PrimitiveSpecConfig<TInput, TPrimitive>
-) {
+export function runPrimitiveTests<TInput, TPrimitive extends PrimitiveInstance<TInput>>({
+  primitive,
+  accepts,
+  rejects,
+}: PrimitiveSpecConfig<TInput, TPrimitive>) {
   test(accepts.title)
     .with(accepts.values)
     .run(({ assert }, validValue) => {

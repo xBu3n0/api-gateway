@@ -6,6 +6,10 @@ export class ProductId extends IdPrimitive {
   }
 
   public static create(value: number): ProductId {
-    return this.createId(value, this.name, (domainValidatedValue) => new ProductId(domainValidatedValue))
+    return this.createId(
+      value,
+      this.name,
+      (domainValidatedValue) => new ProductId(domainValidatedValue)
+    )
   }
 }
