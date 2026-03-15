@@ -231,12 +231,6 @@ Ou, para coleções:
 }
 ```
 
-Exceções:
-
-- login retorna `data.user` e `data.token`
-- `GET /api/v1/clients/:id` retorna o cliente na raiz da resposta e `transactions` ao lado
-- `POST /api/v1/auth/logout`, `DELETE /api/v1/users/:id` e `DELETE /api/v1/products/:id` retornam `message`
-
 ## Formato de erro
 
 As respostas de erro também são retornadas em JSON.
@@ -248,15 +242,13 @@ Status mais comuns:
 - `404`: recurso não encontrado
 - `422`: erro de validação ou regra de negócio
 
-Formato mais comum:
+Formato de erro:
 
 ```json
 {
-  "message": "Error message"
+  "errors": []
 }
 ```
-
-Para erros de validação, a resposta pode incluir detalhes adicionais em `errors`, além do status `422`.
 
 ## Regras de acesso por perfil
 

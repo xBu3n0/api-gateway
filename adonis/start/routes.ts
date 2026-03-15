@@ -20,19 +20,19 @@ router
     router
       .group(() => {
         // router.post('signup', [controllers.http.NewAccount, 'store'])
+        // router.post('logout', [controllers.http.AccessToken, 'destroy']).use(middleware.auth())
         router.post('login', [controllers.http.AccessToken, 'store'])
-        router.post('logout', [controllers.http.AccessToken, 'destroy']).use(middleware.auth())
       })
       .prefix('auth')
       .as('auth')
 
-    router
-      .group(() => {
-        // router.get('/profile', [controllers.http.Profile, 'show'])
-      })
-      .prefix('account')
-      .as('profile')
-      .use(middleware.auth())
+    // router
+    //   .group(() => {
+    //     router.get('/profile', [controllers.http.Profile, 'show'])
+    //   })
+    //   .prefix('account')
+    //   .as('profile')
+    //   .use(middleware.auth())
 
     router
       .group(() => {

@@ -74,8 +74,8 @@ jobs:
         run: npx prettier --check .
       - name: Lint
         run: npm run lint
-      - name: Run tests
-        run: npm run test
+      - name: Run tests with coverage
+        run: npm run test:cov
       - name: Tear down fake database
         if: always()
         run: docker compose -f compose.yml down --volumes

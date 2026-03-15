@@ -13,6 +13,7 @@
     "build": "node ace build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
+    "test:cov": "c8 npm run test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
@@ -53,6 +54,7 @@
     "@poppinss/ts-exec": "^1.4.4",
     "@types/luxon": "^3.7.1",
     "@types/node": "~24.11.0",
+    "c8": "^11.0.0",
     "eslint": "^10.0.2",
     "hot-hook": "^1.0.0",
     "pino-pretty": "^13.1.3",
