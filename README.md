@@ -2,6 +2,29 @@
 
 API REST para processamento de pagamentos com multi-gateway, controle de acesso por perfil e persistência de transações usando AdonisJS, TypeScript e MySQL.
 
+## Sumário
+
+- [Visão geral](#visão-geral)
+- [Stack utilizada](#stack-utilizada)
+- [Sobre a escolha do AdonisJS](#sobre-a-escolha-do-adonisjs)
+- [Requisitos](#requisitos)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Como instalar e rodar o projeto](#como-instalar-e-rodar-o-projeto)
+  - [Opção 1: stack completa com Docker](#opção-1-stack-completa-com-docker)
+  - [Opção 2: API local e dependências auxiliares via Docker](#opção-2-api-local-e-dependências-auxiliares-via-docker)
+- [Scripts úteis](#scripts-úteis)
+- [Comportamento da stack](#comportamento-da-stack)
+- [Autenticação](#autenticação)
+- [Formato de resposta](#formato-de-resposta)
+- [Formato de erro](#formato-de-erro)
+- [Regras de acesso por perfil](#regras-de-acesso-por-perfil)
+- [Detalhamento de rotas](#detalhamento-de-rotas)
+- [Coleção Postman](#coleção-postman)
+- [Dificuldades encontradas](#dificuldades-encontradas)
+- [Pendências](#pendências)
+- [Testes](#testes)
+
 ## Visão geral
 
 O projeto implementa um fluxo de compra público. Ao receber uma compra, a API:
@@ -15,13 +38,15 @@ O projeto implementa um fluxo de compra público. Ao receber uma compra, a API:
 
 ## Stack utilizada
 
-- AdonisJS 7
-- TypeScript
-- MySQL
-- Lucid ORM
-- VineJS
-- Japa
-- Docker Compose
+| Tecnologia | Para que é usada no projeto |
+| --- | --- |
+| AdonisJS 7 | Framework principal da API REST, organização da aplicação, rotas, providers e ciclo de execução |
+| TypeScript | Tipagem estática, contratos mais seguros e melhor manutenção do código |
+| MySQL | Persistência de usuários, gateways, compras e transações |
+| Lucid ORM | Mapeamento entre models e banco de dados, além de consultas, migrations e seeders |
+| VineJS | Validação de payloads recebidos pela API |
+| Japa | Execução dos testes automatizados |
+| Docker Compose | Orquestração da stack local com API, bancos MySQL e mocks de gateway |
 
 ## Sobre a escolha do AdonisJS
 
