@@ -23,8 +23,10 @@ API REST para processamento de pagamentos com multi-gateway, controle de acesso 
 - [Detalhamento de rotas](#detalhamento-de-rotas)
 - [Coleção Postman](#coleção-postman)
 - [Dificuldades encontradas](#dificuldades-encontradas)
+- [Uso de IA](#uso-de-ia)
 - [Pendências](#pendências)
 - [Testes](#testes)
+- [Workflow no GitHub](#workflow-no-github)
 
 ## Visão geral
 
@@ -607,6 +609,10 @@ Também senti falta de uma ferramenta que garantisse a entrada no controller já
 
 Outra dificuldade foi a interpretação correta da aplicação e do que de fato era esperado pelo desafio. Como não havia conversa direta com stakeholder para validar entendimento, foi necessário reinterpretar alguns pontos ao longo do desenvolvimento para ajustar a solução à proposta esperada.
 
+## Uso de IA
+
+O desenvolvimento e a documentação contaram com apoio de IA, com uso do Codex como ferramenta de aceleração. A orquestração da implementação, as correções, a revisão das decisões técnicas e a responsabilidade por garantir a qualidade do código permaneceram sob minha condução.
+
 ## Pendências
 
 Todos os requisitos do desafio foram implementados e estão em funcionamento.
@@ -643,6 +649,14 @@ Para executar os testes:
 cd adonis
 npm install
 npm test
+```
+
+Para executar os testes com coverage:
+
+```bash
+cd adonis
+npm install
+npm run test:cov
 ```
 
 ### Workflow no GitHub
