@@ -10,11 +10,11 @@ export default class ClientPolicy extends BasePolicy {
     }
   }
 
-  readAll(user: User): AuthorizerResponse {
-    return user.role === RoleEnum.USER
+  readAll(_user: User): AuthorizerResponse {
+    return true
   }
 
-  read(user: User): AuthorizerResponse {
-    return user.role === RoleEnum.USER
+  read(_user: User): AuthorizerResponse {
+    return true
   }
 }

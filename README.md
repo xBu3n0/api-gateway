@@ -439,7 +439,7 @@ Como não foi informada uma relação de hierarquia entre as roles, as permissõ
 - `ADMIN`: pode executar todas as ações da aplicação
 - `MANAGER`: pode gerenciar usuários e produtos
 - `FINANCE`: pode gerenciar produtos e realizar reembolso
-- `USER`: pode consultar produtos e operar rotas autenticadas de gateways
+- `USER`: representa o perfil base autenticado; nas rotas que exigem apenas acesso autenticado, qualquer role autenticada é aceita
 
 ## Detalhamento de rotas
 
@@ -530,10 +530,10 @@ Comportamento da rota:
 
 ### Clientes
 
-| Método | Rota                  | Acesso          | Payload / observações                               |
-| ------ | --------------------- | --------------- | --------------------------------------------------- |
-| GET    | `/api/v1/clients`     | `ADMIN`, `USER` | Lista clientes                                      |
-| GET    | `/api/v1/clients/:id` | `ADMIN`, `USER` | Retorna cliente e histórico detalhado de transações |
+| Método | Rota                  | Acesso               | Payload / observações                               |
+| ------ | --------------------- | -------------------- | --------------------------------------------------- |
+| GET    | `/api/v1/clients`     | Qualquer autenticado | Lista clientes                                      |
+| GET    | `/api/v1/clients/:id` | Qualquer autenticado | Retorna cliente e histórico detalhado de transações |
 
 ### Transações
 

@@ -69,13 +69,13 @@ test.group('ClientsController | functional', (group) => {
     response.assertStatus(200)
   })
 
-  test('rejects finance users when listing clients', async ({ client }) => {
+  test('lists clients for finance users', async ({ client }) => {
     const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
     await ClientFactory.create()
 
     const response = await client.get(CLIENTS_BASE_URL).loginAs(finance)
 
-    response.assertStatus(403)
+    response.assertStatus(200)
   })
 
   test('shows a client with serialized transactions only', async ({ client }) => {
@@ -145,12 +145,12 @@ test.group('ClientsController | functional', (group) => {
     })
   })
 
-  test('rejects finance users when showing a client', async ({ client }) => {
+  test('shows a client for finance users', async ({ client }) => {
     const finance = await UserFactory.merge({ role: RoleEnum.FINANCE }).create()
     const clientRecord = await ClientFactory.create()
 
     const response = await client.get(`${CLIENTS_BASE_URL}/${clientRecord.id}`).loginAs(finance)
 
-    response.assertStatus(403)
+    response.assertStatus(200)
   })
 })
