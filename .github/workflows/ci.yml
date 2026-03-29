@@ -25,7 +25,7 @@ jobs:
       SESSION_DRIVER: cookie
 
       # MySQL
-      MYSQL_TEST_DATABASE: betalent-challenge-test
+      MYSQL_TEST_DATABASE: api_gateway_test
       MYSQL_TEST_ROOT_PASSWORD: root
       MYSQL_TEST_USER: user
       MYSQL_TEST_PASSWORD: user_password

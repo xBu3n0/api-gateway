@@ -1,6 +1,6 @@
 openapi: '3.0.0'
 info:
-  title: 'BeTalent Payments API'
+  title: 'API Gateway'
   version: '1.0.0'
   description: 'REST API for payment processing with gateway fallback and role-based access.'
 components:

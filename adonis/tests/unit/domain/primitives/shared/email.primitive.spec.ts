@@ -10,7 +10,7 @@ test.group('Email Primitive', () => {
     primitive: Email,
     accepts: {
       title: 'accepts valid email addresses',
-      values: ['developer@betalent.tech', 'USER+alias@Example.COM'],
+      values: ['developer@example.com', 'USER+alias@Example.COM'],
     },
     rejects: {
       title: 'rejects invalid email formats',

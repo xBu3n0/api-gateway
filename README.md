@@ -1,4 +1,4 @@
-# Desafio Back-end BeTalent
+# API Gateway
 
 API REST para processamento de pagamentos com multi-gateway, controle de acesso por perfil e persistência de transações usando AdonisJS, TypeScript e MySQL.
 
@@ -579,7 +579,7 @@ Valores aceitos para `status` no filtro:
 
 Para facilitar a execução manual da API, o repositório inclui a coleção:
 
-- `postman/betalent.postman_collection.json`
+- `postman/api-gateway.postman_collection.json`
 
 Como usar:
 

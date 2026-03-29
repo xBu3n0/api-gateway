@@ -42,7 +42,7 @@ test.group('TransactionService integration (real database)', (group) => {
     // when
     const purchase = await service.purchase({
       name: 'Jane Doe',
-      email: 'jane@betalent.tech',
+      email: 'jane@example.com',
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [
@@ -57,9 +57,9 @@ test.group('TransactionService integration (real database)', (group) => {
     assert.equal(purchase.transaction.externalId.value, 'gw-1-tx')
     assert.equal(purchase.gateway.id.value, gateway.id)
 
-    const persistedClient = await Client.findByOrFail('email', 'jane@betalent.tech')
+    const persistedClient = await Client.findByOrFail('email', 'jane@example.com')
     const persistedTransaction = await Transaction.findOrFail(purchase.transaction.id.value)
-    const persistedClients = await Client.query().where('email', 'jane@betalent.tech')
+    const persistedClients = await Client.query().where('email', 'jane@example.com')
     assert.equal(persistedClient.name, 'Jane Doe')
     assert.lengthOf(persistedClients, 1)
     assert.equal(persistedTransaction.gatewayId, gateway.id)
@@ -124,7 +124,7 @@ test.group('TransactionService integration (real database)', (group) => {
     // when
     const purchase = await service.purchase({
       name: 'John Doe',
-      email: 'john@betalent.tech',
+      email: 'john@example.com',
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [{ productId: product.id, quantity: 1 }],
@@ -155,7 +155,7 @@ test.group('TransactionService integration (real database)', (group) => {
     const purchaseWithMissingProduct = () =>
       service.purchase({
         name: 'Jane Missing Product',
-        email: 'jane-missing@betalent.tech',
+        email: 'jane-missing@example.com',
         cardNumber: '5569000000006063',
         cvv: '010',
         items: [
@@ -194,7 +194,7 @@ test.group('TransactionService integration (real database)', (group) => {
     ])
     const purchase = await service.purchase({
       name: 'John Doe',
-      email: 'john@betalent.tech',
+      email: 'john@example.com',
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [{ productId: product.id, quantity: 1 }],
@@ -233,7 +233,7 @@ test.group('TransactionService integration (real database)', (group) => {
     const rejectedPurchase = () =>
       service.purchase({
         name: 'No Gateway Success',
-        email: 'nogateway@betalent.tech',
+        email: 'nogateway@example.com',
         cardNumber: '5569000000006063',
         cvv: '010',
         items: [{ productId: product.id, quantity: 1 }],
@@ -245,7 +245,7 @@ test.group('TransactionService integration (real database)', (group) => {
     assert.equal(secondGateway.chargeCalls.length, 1)
 
     const persistedTransaction = await Transaction.all()
-    const persistedClient = await Client.findBy('email', 'nogateway@betalent.tech')
+    const persistedClient = await Client.findBy('email', 'nogateway@example.com')
 
     assert.lengthOf(persistedTransaction, 0)
     assert.isNull(persistedClient)

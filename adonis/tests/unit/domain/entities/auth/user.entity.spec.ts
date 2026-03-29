@@ -7,7 +7,7 @@ test('builds a user entity from stored data', ({ assert }) => {
   // given
   const record = {
     id: 1,
-    email: 'dev@betalent.tech',
+    email: 'dev@example.com',
     role: RoleEnum.ADMIN,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -26,19 +26,19 @@ test('updates the email while keeping other data intact', ({ assert }) => {
   // given
   const record = {
     id: 3,
-    email: 'user2@betalent.tech',
+    email: 'user2@example.com',
     role: RoleEnum.USER,
     createdAt: new Date(),
     updatedAt: new Date(),
   }
   const entity = UserEntity.fromRecord(record)
-  const updatedEmail = Email.create('updated@betalent.tech')
+  const updatedEmail = Email.create('updated@example.com')
 
   // when
   const updated = entity.changeEmail(updatedEmail)
 
   // then
-  assert.equal(entity.email.value, 'user2@betalent.tech')
+  assert.equal(entity.email.value, 'user2@example.com')
   assert.equal(updated.email.value, updatedEmail.value)
   assert.equal(updated.role.value, entity.role.value)
   assert.notStrictEqual(entity, updated)

@@ -80,7 +80,7 @@ const dbConfig = defineConfig({
         port: Number(env.get('MYSQL_PORT', '3306')),
         user: env.get('MYSQL_USER', 'root'),
         password: env.get('MYSQL_PASSWORD', 'root'),
-        database: env.get('MYSQL_DATABASE', 'betalent'),
+        database: env.get('MYSQL_DATABASE', 'api_gateway'),
       },
       migrations: {
         naturalSort: true,
@@ -99,7 +99,7 @@ const dbConfig = defineConfig({
         port: Number(env.get('MYSQL_TEST_PORT', env.get('MYSQL_PORT', '3306'))),
         user: env.get('MYSQL_TEST_USER', env.get('MYSQL_USER', 'root')),
         password: env.get('MYSQL_TEST_PASSWORD', env.get('MYSQL_PASSWORD', 'root')),
-        database: env.get('MYSQL_TEST_DATABASE', 'betalent_test'),
+        database: env.get('MYSQL_TEST_DATABASE', 'api_gateway_test'),
       },
       migrations: {
         naturalSort: true,

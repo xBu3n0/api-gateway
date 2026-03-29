@@ -4,7 +4,7 @@ services:
     ports:
       - 13307:3306
     environment:
-      MYSQL_DATABASE: betalent-challenge-test
+      MYSQL_DATABASE: api_gateway_test
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: user
       MYSQL_PASSWORD: user_password

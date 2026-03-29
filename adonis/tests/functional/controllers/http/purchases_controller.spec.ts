@@ -119,7 +119,7 @@ test.group('PurchasesController | functional', (group) => {
     // when
     const response = await client.post(PURCHASES_BASE_URL).json({
       name: 'Jane Doe',
-      email: 'jane@betalent.tech',
+      email: 'jane@example.com',
       cardNumber: '5569000000006063',
       cvv: '010',
       items: [{ productId: product.id, quantity: 2 }],
@@ -128,13 +128,13 @@ test.group('PurchasesController | functional', (group) => {
     // then
     response.assertStatus(200)
 
-    const createdClient = await Client.findByOrFail('email', 'jane@betalent.tech')
+    const createdClient = await Client.findByOrFail('email', 'jane@example.com')
     const createdTransaction = await Transaction.findByOrFail(
       'external_id',
       'gateway-1-test-transaction'
     )
     const body = response.body() as PurchaseResponseBody
-    const persistedClients = await Client.query().where('email', 'jane@betalent.tech')
+    const persistedClients = await Client.query().where('email', 'jane@example.com')
 
     assert.deepEqual(body, {
       data: {
@@ -145,7 +145,7 @@ test.group('PurchasesController | functional', (group) => {
         client: {
           id: createdClient.id,
           name: 'Jane Doe',
-          email: 'jane@betalent.tech',
+          email: 'jane@example.com',
         },
         gateway: {
           id: gateway.id,
@@ -172,7 +172,7 @@ test.group('PurchasesController | functional', (group) => {
       {
         amount: 2000,
         name: 'Jane Doe',
-        email: 'jane@betalent.tech',
+        email: 'jane@example.com',
         cardNumber: '5569000000006063',
         cvv: '010',
       },

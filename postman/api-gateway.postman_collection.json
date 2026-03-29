@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "46c5c6b9-ca1c-4143-abca-88593b852b27",
-    "name": "BeTalent API",
+    "name": "API Gateway",
     "description": "Colecao Postman alinhada ao README atual e ao comportamento real da API. Execute as pastas na ordem em que aparecem para testar o fluxo completo. `clients` exigem token de `ADMIN` ou `USER`; `transactions` exigem token de `FINANCE` ou `ADMIN`; a compra publica depende de um produto criado antes nas pastas de setup.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "31497027"
